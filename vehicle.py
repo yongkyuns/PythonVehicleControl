@@ -15,34 +15,23 @@ YAW_RATE = 3
 
 class VehicleModel:
     def __init__(self,params,sample_time):
-        A,B,C,D = self.__get_model_from_params(params,sample_time)
-        self.A = A
-        self.B = B
-        self.C = C
-        self.D = D
+        self.A, self.B, self.C, self.D = self.get_model_from_params(params,sample_time)
         self._sample_time = sample_time
         
-
     def update_model(self,params,sample_time=None):
         print('Updating dynamics model...')
         if sample_time is None:
             sample_time = self._sample_time
-
-        A,B,C,D = self.__get_model_from_params(params,sample_time)
-        self.A = A
-        self.B = B
-        self.C = C
-        self.D = D
-        self._sample_time = sample_time
+        self.__init__(params, sample_time)
 
     def get_sample_time(self):
         return self._sample_time
 
-    def __get_model_from_params(self,params,sample_time):
+    def get_model_from_params(self,params,sample_time):
         p = params
         Vx,m,Iz,lf,lr,Caf,Car = p.Vx, p.m, p.Iz, p.lf, p.lr, p.Caf, p.Car
 
-        A = np.array([[           0,                  1,              0,                      0             ],
+        A = np.array([[           0,                  1,              Vx,                      0             ],
                       [           0,       -(2*Caf + 2*Car)/(m*Vx),   0,   -Vx-(2*Caf*lf-2*Car*lr)/(m*Vx)   ],
                       [           0,                  0,              0,                      1             ],
                       [           0,    -(2*lf*Caf-2*lr*Car)/(Iz*Vx), 0,  -(2*lf**2*Caf+2*lr**2*Car)/(Iz*Vx)]])
@@ -98,6 +87,13 @@ class Vehicle:
     
     def measure_output(self):
         return self.model.C @ self.states
+
+    def get_dynamics_model(self,sample_time=None):
+        if sample_time == None:
+            A,B,C,D = self.model.A, self.model.B, self.model.C, self.model.D
+        else:
+            A,B,C,D = self.model.get_model_from_params(self.params,sample_time)
+        return A,B,C,D
 
     def __update_position(self):
         """

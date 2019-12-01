@@ -2,7 +2,7 @@ class CarParams:
     """
     Collection of car parameters to define dynamics model.
     Supports callbacks from owner class when attributes change.
-    Currently supported parameters define bicycle model.
+    Currently supported parameters define bicycle dynamics model.
     """
     def __init__(self,Vx,m,Iz,lf,lr,Caf,Car):
         self._callbacks = []
