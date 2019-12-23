@@ -1,0 +1,25 @@
+To Do:
+    1. Visualization
+        - Separate pyqtgraph child classes into new file
+        - How to abstract scene graph? (multiple cars, paths in declarative YAML?)
+        - Offline mode (playback)
+            - Playback with experimental data (.mdf, .mf4, .dat import & formatting)
+
+    2. Modeling & Control 
+        - Path detection with poly-fit, instead of nearest point search
+        - Implement steering model 
+        - Adaptive control with linearized model (variable velocity)
+        - Tensorflow and RL experiment??
+
+    3. Software & Distribution
+        - Front-end development (GUI, tabs, widgets, interaction)
+        - Graph display
+        - Github update
+        - Installation guide and dependency requirements
+        - Matlab compatibility??
+        - Unit test?
+
+    4. etc.
+        - Documentation
+        - Code profiling
+        - Efficiency & performance improvement

@@ -7,7 +7,7 @@ from PythonRobotics.PathPlanning.CubicSpline import cubic_spline_planner
 import math
 from helper import *
 
-SEARCH_RADIUS = 1 #[m]. Search distance for finding closest path point in successive time step
+SEARCH_RADIUS = 1000 #[m]. Search distance for finding closest path point in successive time step
 
 class Planner:
     '''
@@ -118,6 +118,7 @@ class Planner:
         return qx, qy
     
     def calc_ref(self, x, y, yaw, step, N):
+        x_ref = []
         pos_ref = []
         yaw_ref = []
         
@@ -128,12 +129,13 @@ class Planner:
         for i in range(N):
             x_val = min(x, key=lambda x:abs(x-i*step))
             idx = x.index(x_val)
+            x_ref.append(x[idx])
             pos_ref.append(y[idx])
             yaw_ref.append(yaw[idx])
 
             # temp_pos_ref.append(y[stepIdxSize*i])
             # temp_yaw_ref.append(yaw[stepIdxSize*i])
-        return pos_ref, yaw_ref
+        return x_ref, pos_ref, yaw_ref
 
 def main():
     import matplotlib.pyplot as plt
@@ -153,7 +155,7 @@ def main():
     
     x_pts, y_pts, yaws = planner.detect_local_path(x,y,yaw)
 
-    pos_ref, yaw_ref = planner.calc_ref(x_pts, y_pts, yaws, 3, 5)
+    x_ref, pos_ref, yaw_ref = planner.calc_ref(x_pts, y_pts, yaws, 3, 5)
 
     plt.figure()
     # plt.plot(ax,ay)
