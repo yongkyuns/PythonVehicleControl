@@ -3,6 +3,10 @@
 *scratch*.py
 *scratch*.m
 
+# Dev environment #
+###################
+*.vscode
+
 # Compiled source #
 ###################
 *.com
@@ -12,6 +16,7 @@
 *.o
 *.so
 *.pyc
+__pycache__
 
 # Packages #
 ############
