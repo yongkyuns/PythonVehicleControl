@@ -14,9 +14,9 @@ git clone https://github.com/yongkyuns/PythonVehicleControl.git
 
 ## Usage
 To run the simulator, use the following shell commands in the project directory:
-'''bash
+```bash
 python simulator.py
-'''
+```
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
