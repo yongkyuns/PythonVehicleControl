@@ -1,1 +1,4 @@
 # PythonVehicleControl
+
+PythonVehicleControl is an environment for experimentation of control algorithms and data visualization of autonomous vehicles. With an increasing level of driver-assitance features being adopted in mainstream vehicles, it is a challenge for software engineers to test prototype control algoirthms for these systems and quickly analyze the measurement data produced by them in an intuitive scheme (i.e. by visualizing raw sensor measurements, as well as intermediate output of software in a 3D environment). This project addresses some of these challenges by providing a simulation environment and data visualization layer which is modular and easily configurable for the 
+task of designing autonomous driving vehicles. Since the 
