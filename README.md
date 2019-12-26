@@ -7,10 +7,20 @@ as well as intermediate output of the software in a 3D environment). This projec
 This project is being developed with Python 3 and uses PythonRobotics (https://github.com/AtsushiSakai/PythonRobotics) as a submodule. For visualization, pyqtgraph is used. For a detailed list of dependencies, please refer to the requirements.txt file.
 
 ## Installation
-Please use the following commands to install the project.
+To install this project, first download with the following url.
 ```bash
-git clone https://github.com/yongkyuns/PythonVehicleControl.git
+git clone --recurse-submodules https://github.com/yongkyuns/PythonVehicleControl.git
 ```
+Move to the downloaded folder.
+```bash
+cd PythonVehicleControl
+```
+Then install the required packages.
+```bash
+pip install -r requirements.txt 
+pip install git+https://github.com/pyqtgraph/pyqtgraph.git@develop
+```
+Now we are ready to run!
 
 ## Usage
 To run the simulator, use the following shell commands in the project directory:
