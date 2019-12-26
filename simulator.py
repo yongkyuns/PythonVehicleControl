@@ -12,7 +12,6 @@ import numpy as np
 from pyqtgraph.Qt import QtGui
 import time
 import math
-import matplotlib.pyplot as plt
 import cvxpy
 from scipy import sparse
 from scipy import signal
