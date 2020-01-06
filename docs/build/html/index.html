@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Welcome to PythonVehicleControl’s documentation! &#8212; PythonVehicleControl  documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <title>Welcome to PythonVehicleControl’s documentation! &#8212; PythonVehicleControl 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
@@ -14,26 +13,999 @@
     <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-   
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
   </head><body>
-  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">
+          PythonVehicleControl</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
 
-          <div class="body" role="main">
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
             
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Welcome to PythonVehicleControl’s documentation!</a></li>
+<li><a class="reference internal" href="#module-vehicle">Vehicle</a></li>
+<li><a class="reference internal" href="#module-visualizer">Visualizer</a></li>
+<li><a class="reference internal" href="#module-controller">Controller</a></li>
+<li><a class="reference internal" href="#module-path_planner">Planner</a></li>
+<li><a class="reference internal" href="#module-simulator">Simulator</a></li>
+<li><a class="reference internal" href="#module-gl_items">Graphics</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/index.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
   <div class="section" id="welcome-to-pythonvehiclecontrol-s-documentation">
 <h1>Welcome to PythonVehicleControl’s documentation!<a class="headerlink" href="#welcome-to-pythonvehiclecontrol-s-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
+</div>
+<div class="section" id="module-vehicle">
+<span id="vehicle"></span><h1>Vehicle<a class="headerlink" href="#module-vehicle" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-vehicle"></span><p>This module defines classes required for defining vehicle parameters 
+and movement of the vehicle (dynamics).</p>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">vehicle</span>
+
+<span class="n">car</span> <span class="o">=</span> <span class="n">vehicle</span><span class="o">.</span><span class="n">Vehicle</span><span class="p">()</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">output_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">car</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">N</span><span class="p">))</span>
+<span class="n">state_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">car</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">N</span><span class="p">))</span>
+<span class="n">x_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">y_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">yaw_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">state_hist</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">car</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">output_hist</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span><span class="n">x_hist</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">y_hist</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">yaw_hist</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">car</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">state_hist</span><span class="p">[</span><span class="n">LAT_POS</span><span class="p">,:],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;lat. pos. [m]&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">state_hist</span><span class="p">[</span><span class="n">LAT_VEL</span><span class="p">,:],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;lat. vel. [m/s]&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">state_hist</span><span class="p">[</span><span class="n">YAW</span><span class="p">,:],</span>     <span class="n">label</span><span class="o">=</span><span class="s1">&#39;yaw [rad]&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">state_hist</span><span class="p">[</span><span class="n">YAW_RATE</span><span class="p">,:],</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;yaw rate [rad/s]&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="class">
+<dt id="vehicle.Vehicle">
+<em class="property">class </em><code class="sig-prename descclassname">vehicle.</code><code class="sig-name descname">Vehicle</code><span class="sig-paren">(</span><em class="sig-param">Vx=20</em>, <em class="sig-param">m=1600</em>, <em class="sig-param">Iz=1705</em>, <em class="sig-param">lf=1.4</em>, <em class="sig-param">lr=1.4</em>, <em class="sig-param">Caf=66243</em>, <em class="sig-param">Car=66243</em>, <em class="sig-param">sample_time=0.01</em>, <em class="sig-param">init_state=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vehicle.html#Vehicle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vehicle.Vehicle" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class defines vehicle motion and related functions for simulating the movement of a vehicle.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 87%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>Vx</p></td>
+<td><p>(float) Vehicle speed [m/s]</p></td>
+</tr>
+<tr class="row-odd"><td><p>m</p></td>
+<td><p>(float) Vehicle mass [kg]</p></td>
+</tr>
+<tr class="row-even"><td><p>Iz</p></td>
+<td><p>(float) Moment of inertia along z-axis [kg*m^2]</p></td>
+</tr>
+<tr class="row-odd"><td><p>lf</p></td>
+<td><p>(float) Distance to the front axle from CG [m]</p></td>
+</tr>
+<tr class="row-even"><td><p>lr</p></td>
+<td><p>(float) Distance to the rear axle from CG [m]</p></td>
+</tr>
+<tr class="row-odd"><td><p>Caf</p></td>
+<td><p>(float) Front tire cornering stiffness [N/rad]</p></td>
+</tr>
+<tr class="row-even"><td><p>Car</p></td>
+<td><p>(float) Rear tire cornering stiffness [N/rad]</p></td>
+</tr>
+<tr class="row-odd"><td><p>sample_time</p></td>
+<td><p>(float) Sample time for discretizing the dynamics model</p></td>
+</tr>
+<tr class="row-even"><td><p>init_state</p></td>
+<td><p>([float, float, float, float]) Initial state of the vehicle (lateral position[m], lateral velocity[m/s], yaw angle[rad], yaw rate[rad/s])</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Variables:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>states</p></td>
+<td><p>([float,float,float,float]) Current states (lateral position[m], lateral velocity[m/s], yaw angle[rad], yaw rate[rad/s])</p></td>
+</tr>
+<tr class="row-odd"><td><p>x</p></td>
+<td><p>(float) Global x position of vehicle [m]</p></td>
+</tr>
+<tr class="row-even"><td><p>y</p></td>
+<td><p>(float) Global y position of vehicle [m]</p></td>
+</tr>
+<tr class="row-odd"><td><p>model</p></td>
+<td><p>(VehicleModel) Vehicle dynamics model</p></td>
+</tr>
+<tr class="row-even"><td><p>measured</p></td>
+<td><p>([float, float]) Measured quantities (lateral velocity[m/s], yaw rate[rad/s])</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="vehicle.Vehicle.get_dynamics_model">
+<code class="sig-name descname">get_dynamics_model</code><span class="sig-paren">(</span><em class="sig-param">sample_time=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vehicle.html#Vehicle.get_dynamics_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vehicle.Vehicle.get_dynamics_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the discrete state-space dynamics model. If sample_time is specified, returns 
+discretized model which is based on specified sample time (this may not correspond
+to the actual state-space model of the current Vehicle object). This function is intended
+to be used for implementing model-based control, such as MPC.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 74%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Returns:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>A</p></td>
+<td><p>(numpy array) Discrete ystem matrix A</p></td>
+</tr>
+<tr class="row-odd"><td><p>B</p></td>
+<td><p>(numpy array) Discrete input matrix B</p></td>
+</tr>
+<tr class="row-even"><td><p>C</p></td>
+<td><p>(numpy array) Discrete output matrix C</p></td>
+</tr>
+<tr class="row-odd"><td><p>D</p></td>
+<td><p>(numpy array) Initial condition D</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="vehicle.Vehicle.measure_output">
+<code class="sig-name descname">measure_output</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vehicle.html#Vehicle.measure_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vehicle.Vehicle.measure_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the measurement values of the output states.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vehicle.Vehicle.move">
+<code class="sig-name descname">move</code><span class="sig-paren">(</span><em class="sig-param">steering_ang</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vehicle.html#Vehicle.move"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vehicle.Vehicle.move" title="Permalink to this definition">¶</a></dt>
+<dd><p>“Moves” vehicle 1 time step forward with given steering angle input [rad]. Use this function to execute 1 time step of simulation with internal dynamics model.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 78%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>steering_ang</p></td>
+<td><p>(float) Wheel steering angle [rad]. Positive angle is right side.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Returns:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>Measured Outputs</p></td>
+<td><p>([float, float]) Lateral velocity [m/s] and yaw rate [rad/s]</p></td>
+</tr>
+<tr class="row-odd"><td><p>x</p></td>
+<td><p>(float) Global x position of the vehicle [m]</p></td>
+</tr>
+<tr class="row-even"><td><p>y</p></td>
+<td><p>(float) Global y position of the vehicle [m]</p></td>
+</tr>
+<tr class="row-odd"><td><p>yaw</p></td>
+<td><p>(float) Heading angle of the vehicle [rad]</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="vehicle.Vehicle.update_sample_time">
+<code class="sig-name descname">update_sample_time</code><span class="sig-paren">(</span><em class="sig-param">sample_time</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vehicle.html#Vehicle.update_sample_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vehicle.Vehicle.update_sample_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the sample time and update the dynamics model.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="vehicle.VehicleModel">
+<em class="property">class </em><code class="sig-prename descclassname">vehicle.</code><code class="sig-name descname">VehicleModel</code><span class="sig-paren">(</span><em class="sig-param">params</em>, <em class="sig-param">sample_time</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vehicle.html#VehicleModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vehicle.VehicleModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class implements basic vehicle dynamics model in discrete state-space form.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 85%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>params</p></td>
+<td><p>(CarParams) Collection of parameters (e.g. mass, length, etc.) required for the bicycle model</p></td>
+</tr>
+<tr class="row-odd"><td><p>sample_time</p></td>
+<td><p>(float) Sample time</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Variables:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>A</p></td>
+<td><p>(numpy array) System matrix</p></td>
+</tr>
+<tr class="row-even"><td><p>B</p></td>
+<td><p>(numpy array) Input matrix</p></td>
+</tr>
+<tr class="row-odd"><td><p>C</p></td>
+<td><p>(numpy array) Output matrix</p></td>
+</tr>
+<tr class="row-even"><td><p>D</p></td>
+<td><p>(numpy array) Initial condition</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="vehicle.VehicleModel.get_model_from_params">
+<code class="sig-name descname">get_model_from_params</code><span class="sig-paren">(</span><em class="sig-param">params</em>, <em class="sig-param">sample_time</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vehicle.html#VehicleModel.get_model_from_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vehicle.VehicleModel.get_model_from_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate and return the discretized state-space model.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 83%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>params</p></td>
+<td><p>(CarParams) Collection of parameters (e.g. mass, length, etc.) required for bicycle model.</p></td>
+</tr>
+<tr class="row-odd"><td><p>sample_time</p></td>
+<td><p>(float) Sample time to be used for discretizing the state-space model.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Returns:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>A</p></td>
+<td><p>(numpy array) Discrete system matrix A</p></td>
+</tr>
+<tr class="row-even"><td><p>B</p></td>
+<td><p>(numpy array) Discrete input matrix B</p></td>
+</tr>
+<tr class="row-odd"><td><p>C</p></td>
+<td><p>(numpy array) Discrete output matrix C</p></td>
+</tr>
+<tr class="row-even"><td><p>D</p></td>
+<td><p>(numpy array) Initial condition D</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="vehicle.VehicleModel.get_sample_time">
+<code class="sig-name descname">get_sample_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/vehicle.html#VehicleModel.get_sample_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vehicle.VehicleModel.get_sample_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the sample time used in the VehicleModel object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vehicle.VehicleModel.update_model">
+<code class="sig-name descname">update_model</code><span class="sig-paren">(</span><em class="sig-param">params</em>, <em class="sig-param">sample_time=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/vehicle.html#VehicleModel.update_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#vehicle.VehicleModel.update_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the vehicle model based on updated params or sample time.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 84%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>params</p></td>
+<td><p>(CarParams) Collection of parameters (e.g. mass, length, etc.) required for the bicycle model</p></td>
+</tr>
+<tr class="row-odd"><td><p>sample_time</p></td>
+<td><p>(float) Sample time to be used for discretizing the state-space model.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-visualizer">
+<span id="visualizer"></span><h1>Visualizer<a class="headerlink" href="#module-visualizer" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-visualizer"></span><p>This module defines classes required for visualization.</p>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">visualizer</span>
+
+<span class="k">def</span> <span class="nf">update_func</span><span class="p">():</span> <span class="c1"># define update-function to be called by visualizer for each time-step</span>
+    <span class="k">pass</span>
+
+<span class="n">view</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="p">(</span><span class="n">update_func</span><span class="p">)</span>
+<span class="n">view</span><span class="o">.</span><span class="n">entry_point</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="class">
+<dt id="visualizer.Visualizer">
+<em class="property">class </em><code class="sig-prename descclassname">visualizer.</code><code class="sig-name descname">Visualizer</code><span class="sig-paren">(</span><em class="sig-param">update_func</em>, <em class="sig-param">name='Simulator'</em>, <em class="sig-param">refresh_rate=50</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/visualizer.html#Visualizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#visualizer.Visualizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class uses pyqtgraph and is a primary interface for interacting with the PyQt window.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 79%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>update_func</p></td>
+<td><p>(function) Function to be executed by PyQt at each time step</p></td>
+</tr>
+<tr class="row-odd"><td><p>name</p></td>
+<td><p>(string) Name of the window</p></td>
+</tr>
+<tr class="row-even"><td><p>refresh_rate</p></td>
+<td><p>(float) Update rate of the view [ms]</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="visualizer.Visualizer.add_grid">
+<code class="sig-name descname">add_grid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/visualizer.html#Visualizer.add_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#visualizer.Visualizer.add_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add grid to the view</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="visualizer.Visualizer.entry_point">
+<code class="sig-name descname">entry_point</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/visualizer.html#Visualizer.entry_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#visualizer.Visualizer.entry_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>This entry point is used to trigger the PyQt application</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="visualizer.Visualizer.init_window">
+<code class="sig-name descname">init_window</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/visualizer.html#Visualizer.init_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#visualizer.Visualizer.init_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize PyQt window and default camera position.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="visualizer.Visualizer.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/visualizer.html#Visualizer.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#visualizer.Visualizer.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke exteral update function and camera position around the object in focus</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="visualizer.Visualizer.update_origin">
+<code class="sig-name descname">update_origin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/visualizer.html#Visualizer.update_origin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#visualizer.Visualizer.update_origin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the camaera focus point</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-controller">
+<span id="controller"></span><h1>Controller<a class="headerlink" href="#module-controller" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-controller"></span><p>This module is a collection of algorithms for control of lateral vehicle dynamics.</p>
+<dl class="class">
+<dt id="controller.Controller">
+<em class="property">class </em><code class="sig-prename descclassname">controller.</code><code class="sig-name descname">Controller</code><span class="sig-paren">(</span><em class="sig-param">NU=1</em>, <em class="sig-param">NY=1</em>, <em class="sig-param">T=1</em>, <em class="sig-param">dt=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/controller.html#Controller"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#controller.Controller" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generic controller parent class with some common variables (e.g. sample time, number of states, etc.)</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="controller.MPC">
+<em class="property">class </em><code class="sig-prename descclassname">controller.</code><code class="sig-name descname">MPC</code><span class="sig-paren">(</span><em class="sig-param">getModel</em>, <em class="sig-param">NU=1</em>, <em class="sig-param">NY=1</em>, <em class="sig-param">T=5</em>, <em class="sig-param">dt=0.1</em>, <em class="sig-param">output_weight=None</em>, <em class="sig-param">input_weight=None</em>, <em class="sig-param">input_lim=None</em>, <em class="sig-param">input_rate_lim=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/controller.html#MPC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#controller.MPC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generic model predictive controller class. Uses linearized state-space model.
+Convex optimization is solved through cvxpy module.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 85%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>getModel</p></td>
+<td><p>(function) Function which should return linearized state-space dynamics model as numpy array</p></td>
+</tr>
+<tr class="row-odd"><td><p>NU</p></td>
+<td><p>(int) Number of controlled states</p></td>
+</tr>
+<tr class="row-even"><td><p>NY</p></td>
+<td><p>(int) Number of outputs</p></td>
+</tr>
+<tr class="row-odd"><td><p>T</p></td>
+<td><p>(int) Number of reference points along trajectory</p></td>
+</tr>
+<tr class="row-even"><td><p>dt</p></td>
+<td><p>(float) Sample time [sec] of the controller</p></td>
+</tr>
+<tr class="row-odd"><td><p>output_weight</p></td>
+<td><p>(float) Weight for control of the output</p></td>
+</tr>
+<tr class="row-even"><td><p>input_weight</p></td>
+<td><p>(float) Weight for input constraint control</p></td>
+</tr>
+<tr class="row-odd"><td><p>input_lim</p></td>
+<td><p>(float) Control input limit</p></td>
+</tr>
+<tr class="row-even"><td><p>input_rate_lim</p></td>
+<td><p>(float) Control input rate limit</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="controller.PID">
+<em class="property">class </em><code class="sig-prename descclassname">controller.</code><code class="sig-name descname">PID</code><span class="sig-paren">(</span><em class="sig-param">NU=1</em>, <em class="sig-param">NY=1</em>, <em class="sig-param">T=1</em>, <em class="sig-param">dt=0.1</em>, <em class="sig-param">P_Gain=1</em>, <em class="sig-param">I_Gain=0.1</em>, <em class="sig-param">D_Gain=0.01</em>, <em class="sig-param">weight_split_T=None</em>, <em class="sig-param">weight_split_Y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/controller.html#PID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#controller.PID" title="Permalink to this definition">¶</a></dt>
+<dd><p>PID controller with variable number of control points along desired path.
+Control parameters are lateral position and heading. For each control point &amp; parameter,
+there is a corresponding normalized weight which adds up to 1. Therefore, a single PID
+controller is used to control all of the controlled states and points along desired path.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 88%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>NU</p></td>
+<td><p>(int) Number of controlled states</p></td>
+</tr>
+<tr class="row-odd"><td><p>NY</p></td>
+<td><p>(int) Number of outputs</p></td>
+</tr>
+<tr class="row-even"><td><p>T</p></td>
+<td><p>(int) Number of reference points along trajectory</p></td>
+</tr>
+<tr class="row-odd"><td><p>dt</p></td>
+<td><p>(float) Sample time [sec] of the controller</p></td>
+</tr>
+<tr class="row-even"><td><p>P_Gain</p></td>
+<td><p>(float) Proportional gain of the controller</p></td>
+</tr>
+<tr class="row-odd"><td><p>I_Gain</p></td>
+<td><p>(float) Integral gain of the controller</p></td>
+</tr>
+<tr class="row-even"><td><p>D_Gain</p></td>
+<td><p>(float) Derivative gain of the controller</p></td>
+</tr>
+<tr class="row-odd"><td><p>weight_split_T</p></td>
+<td><p>(list) Determine how to split weight on reference points (e.g. [0.5, 0.5] for equal split on all reference points)</p></td>
+</tr>
+<tr class="row-even"><td><p>weight_split_Y</p></td>
+<td><p>(list) Determine how to split weight on measured output (e.g. [0.5, 0.5] for equal split on position and heading control)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Variables:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>weight_table</p></td>
+<td><p>(numpy array) NY-by-T array of normalized weight for each controlled point &amp; parameter</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="controller.PID.control">
+<code class="sig-name descname">control</code><span class="sig-paren">(</span><em class="sig-param">error_table</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/controller.html#PID.control"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#controller.PID.control" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate control input</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-path_planner">
+<span id="planner"></span><h1>Planner<a class="headerlink" href="#module-path_planner" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-path_planner"></span><p>This module implements simulated perception (e.g. lane detection from camera) and basic path planning algorithms.</p>
+<dl class="class">
+<dt id="path_planner.Planner">
+<em class="property">class </em><code class="sig-prename descclassname">path_planner.</code><code class="sig-name descname">Planner</code><span class="sig-paren">(</span><em class="sig-param">ax</em>, <em class="sig-param">ay</em>, <em class="sig-param">res=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/path_planner.html#Planner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#path_planner.Planner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perception and path planning class. This class takes waypooints as input and generats smooth
+path (currently cubic-spline from PythonRobotics). Also, this class acts as a basic perception module in that it calculates local ‘detected’
+path from the global path, which simulates the functionality of perception stack. From the local
+path, the reference states (e.g. lateral position &amp; heading along the path) can be computed for
+control.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 76%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>ax</p></td>
+<td><p>(list) Floats specifying x coordinates of waypoints</p></td>
+</tr>
+<tr class="row-odd"><td><p>ay</p></td>
+<td><p>(list) Floats specifying y coordinates of waypoints</p></td>
+</tr>
+<tr class="row-even"><td><p>res</p></td>
+<td><p>(float) Spatial resolution [m] of path points</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="path_planner.Planner.calc_nearest_index">
+<code class="sig-name descname">calc_nearest_index</code><span class="sig-paren">(</span><em class="sig-param">x_pos</em>, <em class="sig-param">y_pos</em>, <em class="sig-param">search_mid_pt=0</em>, <em class="sig-param">search_range=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/path_planner.html#Planner.calc_nearest_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#path_planner.Planner.calc_nearest_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the index &amp; distance of the closest path point from the current location specified in the input.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 83%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>x_pos</p></td>
+<td><p>(list) global x coordinate of current position</p></td>
+</tr>
+<tr class="row-odd"><td><p>y_pos</p></td>
+<td><p>(list) global y coordinate of current position</p></td>
+</tr>
+<tr class="row-even"><td><p>search_mid_pt</p></td>
+<td><p>(int) reference index to include in search (0 is at current vehicle position)</p></td>
+</tr>
+<tr class="row-odd"><td><p>search_range</p></td>
+<td><p>(float) distance [m] to perform forward/backward search from ‘search_mid_pt’</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Returns:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>ind</p></td>
+<td><p>(int) index of the closest path coordinate from the global path</p></td>
+</tr>
+<tr class="row-even"><td><p>mind</p></td>
+<td><p>(float) distance to the closest path cooridnate</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="path_planner.Planner.detect_local_path">
+<code class="sig-name descname">detect_local_path</code><span class="sig-paren">(</span><em class="sig-param">x_offset</em>, <em class="sig-param">y_offset</em>, <em class="sig-param">ang</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/path_planner.html#Planner.detect_local_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#path_planner.Planner.detect_local_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mimic camera detection of path by generating relative path to follow with respect to vehicle coordinate.
+This function takes global path coordinates in x, y, and heading and generates relative path with respect
+to vehicle.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 79%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>x_offset</p></td>
+<td><p>(float) vehicle global x coordinate [m]</p></td>
+</tr>
+<tr class="row-odd"><td><p>y_offset</p></td>
+<td><p>(float) vehicle global y coordinate [m]</p></td>
+</tr>
+<tr class="row-even"><td><p>ang</p></td>
+<td><p>(float) vehicle heading angle [rad]</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Variables:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>x</p></td>
+<td><p>(list) global x coordinates of desired path</p></td>
+</tr>
+<tr class="row-odd"><td><p>y</p></td>
+<td><p>(list) global y coordinates of desired path</p></td>
+</tr>
+<tr class="row-even"><td><p>yaw</p></td>
+<td><p>(list) heading angle [rad] of path at [self.x, self.y] points</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Returns:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>rel_x</p></td>
+<td><p>(list) x coordinates of path w.r.t. vehicle</p></td>
+</tr>
+<tr class="row-odd"><td><p>rel_y</p></td>
+<td><p>(list) y coordinates of path w.r.t. vehicle</p></td>
+</tr>
+<tr class="row-even"><td><p>rel_yaw</p></td>
+<td><p>(list) desired heading angle w.r.t. vehicle</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="path_planner.Planner.rotate">
+<code class="sig-name descname">rotate</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">rad</em>, <em class="sig-param">origin=(0</em>, <em class="sig-param">0)</em>, <em class="sig-param">relative=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/path_planner.html#Planner.rotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#path_planner.Planner.rotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a point around a given point.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 84%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>x</p></td>
+<td><p>(float) x coordinate of the point to rotate</p></td>
+</tr>
+<tr class="row-odd"><td><p>y</p></td>
+<td><p>(float) y coordinate of the point to rotate</p></td>
+</tr>
+<tr class="row-even"><td><p>rad</p></td>
+<td><p>(float) angle to rotate the [x,y] point by</p></td>
+</tr>
+<tr class="row-odd"><td><p>origin</p></td>
+<td><p>([float,float]) optional input to speicify origin of rotation</p></td>
+</tr>
+<tr class="row-even"><td><p>relative</p></td>
+<td><p>(boolean) if set to True, do not tralate the [x,y] point back to origin after rotation</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Returns:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>qx</p></td>
+<td><p>(list) rotated x coordinate of input [x,y]</p></td>
+</tr>
+<tr class="row-odd"><td><p>qy</p></td>
+<td><p>(list) rotated y coordinate of input [x,y]</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-simulator">
+<span id="simulator"></span><h1>Simulator<a class="headerlink" href="#module-simulator" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-simulator"></span><p>This module defines classes needed for executing simulation. All of the simulation-related aspects
+(e.g. simulation step, updating graphics, executing and coordinating object movement) are done
+by the simulator module.</p>
+<dl class="class">
+<dt id="simulator.Simulator">
+<em class="property">class </em><code class="sig-prename descclassname">simulator.</code><code class="sig-name descname">Simulator</code><a class="reference internal" href="_modules/simulator.html#Simulator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#simulator.Simulator" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class manages all aspects of simulation and owns data-related
+classes (e.g. vehicle) and view-related classes (e.g. visualizer).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 87%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>sample_time</p></td>
+<td><p>(float) sample time of the simulation. Changing sample time will update discrete dynamics of member objects.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Variables:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>N</p></td>
+<td><p>(int) Maximum log data size</p></td>
+</tr>
+<tr class="row-odd"><td><p>currentStep</p></td>
+<td><p>(int) Current simulation step</p></td>
+</tr>
+<tr class="row-even"><td><p>view</p></td>
+<td><p>(Visualizer) Main view for display</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="simulator.Simulator.calcSteeringAng">
+<code class="sig-name descname">calcSteeringAng</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/simulator.html#Simulator.calcSteeringAng"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#simulator.Simulator.calcSteeringAng" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine steering input</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="simulator.Simulator.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/simulator.html#Simulator.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#simulator.Simulator.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke entry_point of the Visualizer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="simulator.Simulator.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/simulator.html#Simulator.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#simulator.Simulator.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute 1 time step of simulation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="simulator.Simulator.update_view_data">
+<code class="sig-name descname">update_view_data</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">plotObject</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/simulator.html#Simulator.update_view_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#simulator.Simulator.update_view_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the data for the line&amp;scatter plot items</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 76%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>x</p></td>
+<td><p>(numpy array) 1-by-n array of x coordinates</p></td>
+</tr>
+<tr class="row-odd"><td><p>y</p></td>
+<td><p>(numpy array) 1-by-n array of y coordinates</p></td>
+</tr>
+<tr class="row-even"><td><p>plotObject</p></td>
+<td><p>(object) object within Visualizer for update</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-gl_items">
+<span id="graphics"></span><h1>Graphics<a class="headerlink" href="#module-gl_items" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-gl_itmes"></span><p>This module implements child classes of default PyQtGraph OpenGL items for visualization. 
+Some classes (e.g. GLBoxItem) needed to be defined to change their origin (from left bottem corner to center of object) 
+for easier manipualtion. Some classes (e.g. lines and scatter) were extended to provide functions for changing
+their data in each simulation time step with a common function name to provide consistency.</p>
+<dl class="class">
+<dt id="gl_items.Box">
+<em class="property">class </em><code class="sig-prename descclassname">gl_items.</code><code class="sig-name descname">Box</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">size=(1</em>, <em class="sig-param">1</em>, <em class="sig-param">1)</em>, <em class="sig-param">color='g'</em>, <em class="sig-param">data=(0</em>, <em class="sig-param">0</em>, <em class="sig-param">0</em>, <em class="sig-param">0</em>, <em class="sig-param">0</em>, <em class="sig-param">0)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gl_items.html#Box"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gl_items.Box" title="Permalink to this definition">¶</a></dt>
+<dd><p>Box object is a child class of pyqtgraph.opengl.GLBoxItem. The location of the box position is 
+at the origin, which is the x,y center of the vehicle and at 0 height (i.e. center 
+of the bottom surface).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 76%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>(string) name of the object</p></td>
+</tr>
+<tr class="row-odd"><td><p>size</p></td>
+<td><p>([float,float,float]) length,width,height of the box</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="gl_items.Box.paint">
+<code class="sig-name descname">paint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gl_items.html#Box.paint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gl_items.Box.paint" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function overrides GLBoxItem.paint to define the origin with respect to the center of the
+box, instead of using the left lower corner.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gl_items.Box.setData">
+<code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param">x=None</em>, <em class="sig-param">y=None</em>, <em class="sig-param">z=None</em>, <em class="sig-param">x_ang=None</em>, <em class="sig-param">y_ang=None</em>, <em class="sig-param">z_ang=None</em>, <em class="sig-param">data=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gl_items.html#Box.setData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gl_items.Box.setData" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to change the data of the object for animation. For boxes,
+this function updates the location and orientation. For line and scatter plot, this 
+function updates the plot data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gl_items.Grid">
+<em class="property">class </em><code class="sig-prename descclassname">gl_items.</code><code class="sig-name descname">Grid</code><span class="sig-paren">(</span><em class="sig-param">size=(50</em>, <em class="sig-param">50</em>, <em class="sig-param">1)</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gl_items.html#Grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gl_items.Grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class adds grid to the 3D view and is a child class of pyqtgraph.opengl.GLGridItem.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gl_items.Line">
+<em class="property">class </em><code class="sig-prename descclassname">gl_items.</code><code class="sig-name descname">Line</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">color='g'</em>, <em class="sig-param">data=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gl_items.html#Line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gl_items.Line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Line is a child class of pyqtgraph.opengl.GLLinePlotItem. This class 
+can be used to draw line items (e.g. paths, lanes, etc.) in 3D environment.
+Line.setData function can be used to update the data in each time step.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 85%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>(string) name of the object</p></td>
+</tr>
+<tr class="row-odd"><td><p>data</p></td>
+<td><p>(numpy array) 3-by-n array of (x,y,z) coordinates for plot. 2-by-n also works (assume 2D)</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="gl_items.Line.setData">
+<code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param">data=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gl_items.html#Line.setData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gl_items.Line.setData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the data displayed by this item. All arguments are optional; 
+for example it is allowed to update vertex positions while leaving 
+colors unchanged, etc.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 71%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td colspan="2"><p><strong>Arguments:</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>pos</p></td>
+<td><p>(N,3) array of floats specifying point locations.</p></td>
+</tr>
+<tr class="row-odd"><td><p>color</p></td>
+<td><p>(N,4) array of floats (0.0-1.0) or
+tuple of floats specifying
+a single color for the entire item.</p></td>
+</tr>
+<tr class="row-even"><td><p>width</p></td>
+<td><p>float specifying line width</p></td>
+</tr>
+<tr class="row-odd"><td><p>antialias</p></td>
+<td><p>enables smooth line drawing</p></td>
+</tr>
+<tr class="row-even"><td><p>mode</p></td>
+<td><dl class="simple">
+<dt>‘lines’: Each pair of vertexes draws a single line</dt><dd><p>segment.</p>
+</dd>
+<dt>‘line_strip’: All vertexes are drawn as a</dt><dd><p>continuous set of line segments.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gl_items.Scatter">
+<em class="property">class </em><code class="sig-prename descclassname">gl_items.</code><code class="sig-name descname">Scatter</code><span class="sig-paren">(</span><em class="sig-param">name, color=[1.0, 1.0, 0.0, 0.5], size=13, data=array([0, 0]), **kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gl_items.html#Scatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gl_items.Scatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scatter is a child class of pyqtgraph.opengl.GLScatterPlotItem. This class 
+can be used to draw points (e.g. spheres, point-cloud, etc.) in 3D environment.
+Scatter.setData function can be used to update the data in each time step.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 85%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>(string) name of the object</p></td>
+</tr>
+<tr class="row-odd"><td><p>size</p></td>
+<td><p>(float) size of the points</p></td>
+</tr>
+<tr class="row-even"><td><p>data</p></td>
+<td><p>(numpy array) 3-by-n array of (x,y,z) coordinates for plot. 2-by-n also works (assume 2D)</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="gl_items.Scatter.setData">
+<code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param">data=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gl_items.html#Scatter.setData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gl_items.Scatter.setData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the data displayed by this item. All arguments are optional; 
+for example it is allowed to update spot positions while leaving 
+colors unchanged, etc.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 71%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Arguments:</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>pos</p></td>
+<td><p>(N,3) array of floats specifying point locations.</p></td>
+</tr>
+<tr class="row-odd"><td><p>color</p></td>
+<td><p>(N,4) array of floats (0.0-1.0) specifying
+spot colors OR a tuple of floats specifying
+a single color for all spots.</p></td>
+</tr>
+<tr class="row-even"><td><p>size</p></td>
+<td><p>(N,) array of floats specifying spot sizes or
+a single value to apply to all spots.</p></td>
+</tr>
+<tr class="row-odd"><td><p>pxMode</p></td>
+<td><p>If True, spot sizes are expressed in pixels.
+Otherwise, they are expressed in item coordinates.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
@@ -45,66 +1017,21 @@
 </div>
 
 
-          </div>
-          
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="#">PythonVehicleControl</a></h1>
-
-
-
-
-
-
-
-
-<h3>Navigation</h3>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="#">Documentation overview</a><ul>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
     </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2019, Yongkyun Shin.
       
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
       
-      |
-      <a href="_sources/index.rst.txt"
-          rel="nofollow">Page source</a>
-    </div>
-
-    
-
-    
+    </p>
+    <p>
+        &copy; Copyright 2019, Yongkyun Shin.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

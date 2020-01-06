@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>vehicle &#8212; PythonVehicleControl 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          PythonVehicleControl</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for vehicle</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: vehicle</span>
+<span class="sd">   :synopsis: Define classes required for defining vehicle </span>
+<span class="sd">              parameters and movement of the vehicle.</span>
+<span class="sd">.. moduleauthor:: Yongkyun Shin &lt;github.com/yongkyuns&gt;</span>
+
+<span class="sd">This module defines classes required for defining vehicle parameters </span>
+<span class="sd">and movement of the vehicle (dynamics).</span>
+
+<span class="sd">Example:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    import matplotlib.pyplot as plt</span>
+<span class="sd">    import math</span>
+<span class="sd">    import vehicle</span>
+
+<span class="sd">    car = vehicle.Vehicle()</span>
+<span class="sd">    N = 100</span>
+<span class="sd">    output_hist = np.zeros((car.model.C.shape[0],N))</span>
+<span class="sd">    state_hist = np.zeros((car.model.A.shape[0],N))</span>
+<span class="sd">    x_hist = np.zeros((N,1))</span>
+<span class="sd">    y_hist = np.zeros((N,1))</span>
+<span class="sd">    yaw_hist = np.zeros((N,1))</span>
+<span class="sd">    </span>
+<span class="sd">    for i in range(N):</span>
+<span class="sd">        state_hist[:,i] = car.states.flatten()</span>
+<span class="sd">        output_hist[:,i],x_hist[i,0],y_hist[i,0],yaw_hist[i,0] = car.move(10*math.pi/180)</span>
+<span class="sd">    </span>
+<span class="sd">    plt.figure()</span>
+<span class="sd">    plt.plot(state_hist[LAT_POS,:], label=&#39;lat. pos. [m]&#39;)</span>
+<span class="sd">    plt.plot(state_hist[LAT_VEL,:], label=&#39;lat. vel. [m/s]&#39;)</span>
+<span class="sd">    plt.plot(state_hist[YAW,:],     label=&#39;yaw [rad]&#39;)</span>
+<span class="sd">    plt.plot(state_hist[YAW_RATE,:],label=&#39;yaw rate [rad/s]&#39;)</span>
+
+<span class="sd">    plt.legend()</span>
+<span class="sd">    plt.grid(True)</span>
+<span class="sd">    plt.show()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">signal</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">helper</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">car_params</span> <span class="k">as</span> <span class="nn">cp</span>
+
+<span class="c1">#states</span>
+<span class="n">LAT_POS</span>  <span class="o">=</span> <span class="mi">0</span>
+<span class="n">LAT_VEL</span>  <span class="o">=</span> <span class="mi">1</span>
+<span class="n">YAW</span>      <span class="o">=</span> <span class="mi">2</span>
+<span class="n">YAW_RATE</span> <span class="o">=</span> <span class="mi">3</span>
+
+<div class="viewcode-block" id="VehicleModel"><a class="viewcode-back" href="../index.html#vehicle.VehicleModel">[docs]</a><span class="k">class</span> <span class="nc">VehicleModel</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This class implements basic vehicle dynamics model in discrete state-space form. </span>
+<span class="sd">    </span>
+<span class="sd">    ================  ==================================================</span>
+<span class="sd">    **Arguments:**</span>
+<span class="sd">    params            (CarParams) Collection of parameters (e.g. mass, length, etc.) required for the bicycle model</span>
+<span class="sd">    sample_time       (float) Sample time</span>
+
+<span class="sd">    **Variables:**</span>
+<span class="sd">    A                 (numpy array) System matrix</span>
+<span class="sd">    B                 (numpy array) Input matrix</span>
+<span class="sd">    C                 (numpy array) Output matrix</span>
+<span class="sd">    D                 (numpy array) Initial condition</span>
+<span class="sd">    ================  ==================================================</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">params</span><span class="p">,</span><span class="n">sample_time</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">B</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">C</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_model_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span><span class="n">sample_time</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sample_time</span> <span class="o">=</span> <span class="n">sample_time</span>
+        
+<div class="viewcode-block" id="VehicleModel.update_model"><a class="viewcode-back" href="../index.html#vehicle.VehicleModel.update_model">[docs]</a>    <span class="k">def</span> <span class="nf">update_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">params</span><span class="p">,</span><span class="n">sample_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Update the vehicle model based on updated params or sample time.</span>
+
+<span class="sd">        ==================  ==================================================</span>
+<span class="sd">        **Arguments:**</span>
+<span class="sd">        params              (CarParams) Collection of parameters (e.g. mass, length, etc.) required for the bicycle model</span>
+<span class="sd">        sample_time         (float) Sample time to be used for discretizing the state-space model.</span>
+<span class="sd">        ==================  ==================================================</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updating dynamics model...&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sample_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sample_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">sample_time</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VehicleModel.get_sample_time"><a class="viewcode-back" href="../index.html#vehicle.VehicleModel.get_sample_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_sample_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return the sample time used in the VehicleModel object.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_time</span></div>
+
+<div class="viewcode-block" id="VehicleModel.get_model_from_params"><a class="viewcode-back" href="../index.html#vehicle.VehicleModel.get_model_from_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_from_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">params</span><span class="p">,</span><span class="n">sample_time</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculate and return the discretized state-space model.</span>
+
+<span class="sd">        ==================  ==================================================</span>
+<span class="sd">        **Arguments:**</span>
+<span class="sd">        params              (CarParams) Collection of parameters (e.g. mass, length, etc.) required for bicycle model.</span>
+<span class="sd">        sample_time         (float) Sample time to be used for discretizing the state-space model.</span>
+
+<span class="sd">        **Returns:**</span>
+<span class="sd">        A                   (numpy array) Discrete system matrix A</span>
+<span class="sd">        B                   (numpy array) Discrete input matrix B</span>
+<span class="sd">        C                   (numpy array) Discrete output matrix C</span>
+<span class="sd">        D                   (numpy array) Initial condition D</span>
+<span class="sd">        ==================  ==================================================</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="n">Vx</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">Iz</span><span class="p">,</span><span class="n">lf</span><span class="p">,</span><span class="n">lr</span><span class="p">,</span><span class="n">Caf</span><span class="p">,</span><span class="n">Car</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">Vx</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">Iz</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">lf</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">lr</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">Caf</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">Car</span>
+
+        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span>           <span class="mi">0</span><span class="p">,</span>                  <span class="mi">1</span><span class="p">,</span>              <span class="n">Vx</span><span class="p">,</span>                      <span class="mi">0</span>             <span class="p">],</span>
+                      <span class="p">[</span>           <span class="mi">0</span><span class="p">,</span>       <span class="o">-</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">Caf</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">Car</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">m</span><span class="o">*</span><span class="n">Vx</span><span class="p">),</span>   <span class="mi">0</span><span class="p">,</span>   <span class="o">-</span><span class="n">Vx</span><span class="o">-</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">Caf</span><span class="o">*</span><span class="n">lf</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">Car</span><span class="o">*</span><span class="n">lr</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">m</span><span class="o">*</span><span class="n">Vx</span><span class="p">)</span>   <span class="p">],</span>
+                      <span class="p">[</span>           <span class="mi">0</span><span class="p">,</span>                  <span class="mi">0</span><span class="p">,</span>              <span class="mi">0</span><span class="p">,</span>                      <span class="mi">1</span>             <span class="p">],</span>
+                      <span class="p">[</span>           <span class="mi">0</span><span class="p">,</span>    <span class="o">-</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">lf</span><span class="o">*</span><span class="n">Caf</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">lr</span><span class="o">*</span><span class="n">Car</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">Iz</span><span class="o">*</span><span class="n">Vx</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span>  <span class="o">-</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">lf</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">Caf</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">lr</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">Car</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">Iz</span><span class="o">*</span><span class="n">Vx</span><span class="p">)]])</span>
+
+        <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span>     <span class="mi">0</span>     <span class="p">],</span>
+                      <span class="p">[</span>  <span class="mi">2</span><span class="o">*</span><span class="n">Caf</span><span class="o">/</span><span class="n">m</span>  <span class="p">],</span>
+                      <span class="p">[</span>     <span class="mi">0</span>     <span class="p">],</span>
+                      <span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">lf</span><span class="o">*</span><span class="n">Caf</span><span class="o">/</span><span class="n">Iz</span><span class="p">]])</span>
+
+        <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="c1"># lateral position</span>
+                      <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span> <span class="c1"># yaw angle</span>
+
+        <span class="n">D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">Ad</span><span class="p">,</span><span class="n">Bd</span><span class="p">,</span><span class="n">Cd</span><span class="p">,</span><span class="n">Dd</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">cont2discrete</span><span class="p">((</span><span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">D</span><span class="p">),</span><span class="n">sample_time</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Ad</span><span class="p">,</span><span class="n">Bd</span><span class="p">,</span><span class="n">Cd</span><span class="p">,</span><span class="n">Dd</span></div></div>
+
+
+
+<div class="viewcode-block" id="Vehicle"><a class="viewcode-back" href="../index.html#vehicle.Vehicle">[docs]</a><span class="k">class</span> <span class="nc">Vehicle</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This class defines vehicle motion and related functions for simulating the movement of a vehicle.</span>
+
+<span class="sd">    ====================  ==================================================</span>
+<span class="sd">    **Arguments:**</span>
+<span class="sd">    Vx                    (float) Vehicle speed [m/s]</span>
+<span class="sd">    m                     (float) Vehicle mass [kg]</span>
+<span class="sd">    Iz                    (float) Moment of inertia along z-axis [kg*m^2] </span>
+<span class="sd">    lf                    (float) Distance to the front axle from CG [m]</span>
+<span class="sd">    lr                    (float) Distance to the rear axle from CG [m]</span>
+<span class="sd">    Caf                   (float) Front tire cornering stiffness [N/rad]</span>
+<span class="sd">    Car                   (float) Rear tire cornering stiffness [N/rad]</span>
+<span class="sd">    sample_time           (float) Sample time for discretizing the dynamics model </span>
+<span class="sd">    init_state            ([float, float, float, float]) Initial state of the vehicle (lateral position[m], lateral velocity[m/s], yaw angle[rad], yaw rate[rad/s])</span>
+<span class="sd">    </span>
+<span class="sd">    **Variables:**</span>
+<span class="sd">    states                ([float,float,float,float]) Current states (lateral position[m], lateral velocity[m/s], yaw angle[rad], yaw rate[rad/s])</span>
+<span class="sd">    x                     (float) Global x position of vehicle [m]</span>
+<span class="sd">    y                     (float) Global y position of vehicle [m]</span>
+<span class="sd">    model                 (VehicleModel) Vehicle dynamics model</span>
+<span class="sd">    measured              ([float, float]) Measured quantities (lateral velocity[m/s], yaw rate[rad/s])</span>
+<span class="sd">    ====================  ==================================================</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">Vx</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span><span class="n">m</span><span class="o">=</span><span class="mi">1600</span><span class="p">,</span><span class="n">Iz</span><span class="o">=</span><span class="mi">1705</span><span class="p">,</span><span class="n">lf</span><span class="o">=</span><span class="mf">1.4</span><span class="p">,</span><span class="n">lr</span><span class="o">=</span><span class="mf">1.4</span><span class="p">,</span><span class="n">Caf</span><span class="o">=</span><span class="mi">66243</span><span class="p">,</span><span class="n">Car</span><span class="o">=</span><span class="mi">66243</span><span class="p">,</span><span class="n">sample_time</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span><span class="n">init_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CarParams</span><span class="p">(</span><span class="n">Vx</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">Iz</span><span class="p">,</span><span class="n">lf</span><span class="p">,</span><span class="n">lr</span><span class="p">,</span><span class="n">Caf</span><span class="p">,</span><span class="n">Car</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">VehicleModel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span><span class="n">sample_time</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">register_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">update_model</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">init_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">init_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="n">init_state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">measured</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">measure_output</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span>
+    <span class="nd">@params</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">update_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span>
+    <span class="nd">@model</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">yaw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pi_2_pi</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">YAW</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+
+<div class="viewcode-block" id="Vehicle.update_sample_time"><a class="viewcode-back" href="../index.html#vehicle.Vehicle.update_sample_time">[docs]</a>    <span class="k">def</span> <span class="nf">update_sample_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sample_time</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Change the sample time and update the dynamics model.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">update_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span><span class="n">sample_time</span><span class="o">=</span><span class="n">sample_time</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="Vehicle.measure_output"><a class="viewcode-back" href="../index.html#vehicle.Vehicle.measure_output">[docs]</a>    <span class="k">def</span> <span class="nf">measure_output</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return the measurement values of the output states.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">C</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span></div>
+
+<div class="viewcode-block" id="Vehicle.get_dynamics_model"><a class="viewcode-back" href="../index.html#vehicle.Vehicle.get_dynamics_model">[docs]</a>    <span class="k">def</span> <span class="nf">get_dynamics_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sample_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the discrete state-space dynamics model. If sample_time is specified, returns </span>
+<span class="sd">        discretized model which is based on specified sample time (this may not correspond</span>
+<span class="sd">        to the actual state-space model of the current Vehicle object). This function is intended</span>
+<span class="sd">        to be used for implementing model-based control, such as MPC.</span>
+
+<span class="sd">        ==================  ==================================================</span>
+<span class="sd">        **Returns:**</span>
+<span class="sd">        A                   (numpy array) Discrete ystem matrix A</span>
+<span class="sd">        B                   (numpy array) Discrete input matrix B</span>
+<span class="sd">        C                   (numpy array) Discrete output matrix C</span>
+<span class="sd">        D                   (numpy array) Initial condition D</span>
+<span class="sd">        ==================  ==================================================</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">sample_time</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">B</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">C</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">D</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_model_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span><span class="n">sample_time</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">D</span></div>
+
+    <span class="k">def</span> <span class="nf">__update_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform 1 time step update of the global position [x, y] based on the current vehicle states.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">YAW</span><span class="p">]</span>
+        <span class="n">Vx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">Vx</span>
+        <span class="n">Vy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">LAT_VEL</span><span class="p">]</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Vx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">Vy</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">ang</span> <span class="o">=</span> <span class="n">yaw</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">Vy</span><span class="o">/</span><span class="n">Vx</span><span class="p">)</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_sample_time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="n">V</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">ang</span><span class="p">)</span><span class="o">*</span><span class="n">dt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">+=</span> <span class="n">V</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ang</span><span class="p">)</span><span class="o">*</span><span class="n">dt</span>
+
+<div class="viewcode-block" id="Vehicle.move"><a class="viewcode-back" href="../index.html#vehicle.Vehicle.move">[docs]</a>    <span class="k">def</span> <span class="nf">move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">steering_ang</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;Moves&quot; vehicle 1 time step forward with given steering angle input [rad]. Use this function to execute 1 time step of simulation with internal dynamics model.</span>
+
+<span class="sd">        ==================  ==================================================</span>
+<span class="sd">        **Arguments:**</span>
+<span class="sd">        steering_ang        (float) Wheel steering angle [rad]. Positive angle is right side.</span>
+
+<span class="sd">        **Returns:**</span>
+<span class="sd">        Measured Outputs    ([float, float]) Lateral velocity [m/s] and yaw rate [rad/s]</span>
+<span class="sd">        x                   (float) Global x position of the vehicle [m]</span>
+<span class="sd">        y                   (float) Global y position of the vehicle [m]</span>
+<span class="sd">        yaw                 (float) Heading angle of the vehicle [rad]</span>
+<span class="sd">        ==================  ==================================================</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">steering_ang</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">steering_ang</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">measured</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">measure_output</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">A</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">B</span> <span class="o">@</span> <span class="n">steering_ang</span>
+        <span class="c1"># self.states = self.model.A.dot(self.states) + self.model.B.dot(np.array([[steering_ang]]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__update_position</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">measured</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaw</span></div></div>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+    <span class="kn">import</span> <span class="nn">math</span>
+
+    <span class="n">car</span> <span class="o">=</span> <span class="n">Vehicle</span><span class="p">()</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">output_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">car</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">N</span><span class="p">))</span>
+    <span class="n">state_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">car</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">N</span><span class="p">))</span>
+    <span class="n">x_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">y_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">yaw_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">state_hist</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">car</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">output_hist</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span><span class="n">x_hist</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">y_hist</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">yaw_hist</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">car</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">)</span>
+    
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">state_hist</span><span class="p">[</span><span class="n">LAT_POS</span><span class="p">,:],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;lat. pos. [m]&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">state_hist</span><span class="p">[</span><span class="n">LAT_VEL</span><span class="p">,:],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;lat. vel. [m/s]&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">state_hist</span><span class="p">[</span><span class="n">YAW</span><span class="p">,:],</span>     <span class="n">label</span><span class="o">=</span><span class="s1">&#39;yaw [rad]&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">state_hist</span><span class="p">[</span><span class="n">YAW_RATE</span><span class="p">,:],</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;yaw rate [rad/s]&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2019, Yongkyun Shin.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

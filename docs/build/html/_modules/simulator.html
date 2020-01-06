@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>simulator &#8212; PythonVehicleControl 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          PythonVehicleControl</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for simulator</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">.. module:: simulator</span>
+<span class="sd">   :synopsis: Top-level simulator class for executing simulation</span>
+<span class="sd">.. moduleauthor:: Yongkyun Shin &lt;github.com/yongkyuns&gt;</span>
+
+<span class="sd">This module defines classes needed for executing simulation. All of the simulation-related aspects</span>
+<span class="sd">(e.g. simulation step, updating graphics, executing and coordinating object movement) are done</span>
+<span class="sd">by the simulator module.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">controller</span> <span class="kn">import</span> <span class="n">MPC</span><span class="p">,</span> <span class="n">PID</span>
+<span class="kn">import</span> <span class="nn">vehicle</span>
+<span class="kn">import</span> <span class="nn">path_planner</span>
+<span class="kn">import</span> <span class="nn">visualizer</span> <span class="k">as</span> <span class="nn">view</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">colored_traceback.always</span> 
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="Simulator"><a class="viewcode-back" href="../index.html#simulator.Simulator">[docs]</a><span class="k">class</span> <span class="nc">Simulator</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This class manages all aspects of simulation and owns data-related</span>
+<span class="sd">    classes (e.g. vehicle) and view-related classes (e.g. visualizer).</span>
+<span class="sd">    </span>
+<span class="sd">    ================  ==================================================</span>
+<span class="sd">    **Arguments:**</span>
+<span class="sd">    sample_time       (float) sample time of the simulation. Changing sample time will update discrete dynamics of member objects.</span>
+<span class="sd">    </span>
+<span class="sd">    **Variables:**</span>
+<span class="sd">    N                 (int) Maximum log data size</span>
+<span class="sd">    currentStep       (int) Current simulation step</span>
+<span class="sd">    view              (Visualizer) Main view for display              </span>
+<span class="sd">    ================  ==================================================</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sample_time</span> <span class="o">=</span> <span class="mf">0.01</span> <span class="c1"># [sec]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vehicle</span> <span class="o">=</span> <span class="n">vehicle</span><span class="o">.</span><span class="n">Vehicle</span><span class="p">(</span><span class="n">sample_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_time</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="mi">10000</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currentStep</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">ax</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">250</span><span class="p">]</span>
+        <span class="n">ay</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">60</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">Visualizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path_planner</span><span class="o">.</span><span class="n">Planner</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span><span class="n">ay</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_view_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">x</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">y</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">global_path</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">controller</span> <span class="o">=</span> <span class="n">PID</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">NY</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">P_Gain</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">I_Gain</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">D_Gain</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">weight_split_T</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">],</span> <span class="n">weight_split_Y</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">])</span>
+        <span class="c1"># self.controller = MPC(self.vehicle.get_dynamics_model)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_log</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Simulator.update_view_data"><a class="viewcode-back" href="../index.html#simulator.Simulator.update_view_data">[docs]</a>    <span class="k">def</span> <span class="nf">update_view_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">plotObject</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Update the data for the line&amp;scatter plot items</span>
+<span class="sd">        </span>
+<span class="sd">        ================  ==================================================</span>
+<span class="sd">        **Arguments:**</span>
+<span class="sd">        x                 (numpy array) 1-by-n array of x coordinates</span>
+<span class="sd">        y                 (numpy array) 1-by-n array of y coordinates</span>
+<span class="sd">        plotObject        (object) object within Visualizer for update</span>
+<span class="sd">        ================  ==================================================</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">path_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+        <span class="n">plotObject</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">path_pts</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">init_log</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">vehicle</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">N</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_ref_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">vehicle</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">N</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yaw_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Simulator.run"><a class="viewcode-back" href="../index.html#simulator.Simulator.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Invoke entry_point of the Visualizer</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">entry_point</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Simulator.calcSteeringAng"><a class="viewcode-back" href="../index.html#simulator.Simulator.calcSteeringAng">[docs]</a>    <span class="k">def</span> <span class="nf">calcSteeringAng</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Determine steering input</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Update vehicle states</span>
+        <span class="n">pos_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vehicle</span><span class="o">.</span><span class="n">x</span>
+        <span class="n">pos_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vehicle</span><span class="o">.</span><span class="n">y</span>
+        <span class="n">yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vehicle</span><span class="o">.</span><span class="n">yaw</span>
+        <span class="n">Vx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vehicle</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">Vx</span>
+        
+        <span class="c1"># Generate local path to follow --&gt; subset of global path near vehicle in relative coordinate frame</span>
+        <span class="n">rel_path_x</span><span class="p">,</span> <span class="n">rel_path_y</span><span class="p">,</span> <span class="n">rel_path_yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">detect_local_path</span><span class="p">(</span><span class="n">pos_x</span><span class="p">,</span><span class="n">pos_y</span><span class="p">,</span><span class="n">yaw</span><span class="p">)</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="n">Vx</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">controller</span><span class="o">.</span><span class="n">dt</span>
+        <span class="c1"># Calculate reference output (lateral position, heading) from desired path</span>
+        <span class="n">x_ref</span><span class="p">,</span> <span class="n">pos_ref</span><span class="p">,</span> <span class="n">yaw_ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">calc_ref</span><span class="p">(</span><span class="n">rel_path_x</span><span class="p">,</span> <span class="n">rel_path_y</span><span class="p">,</span> <span class="n">rel_path_yaw</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">controller</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">yref</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">pos_ref</span><span class="p">,</span><span class="n">yaw_ref</span><span class="p">])</span>
+
+        <span class="c1"># state = np.array([0,self.vehicle.states[1].item(),0,self.vehicle.states[3].item()])</span>
+        <span class="c1"># str_ang = self.controller.control(yref,state)</span>
+        <span class="n">str_ang</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">controller</span><span class="o">.</span><span class="n">control</span><span class="p">(</span><span class="n">yref</span><span class="p">)</span>
+
+        <span class="c1">#Update view</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_view_data</span><span class="p">(</span><span class="n">x_ref</span><span class="p">,</span><span class="n">pos_ref</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">control_points</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_view_data</span><span class="p">(</span><span class="n">rel_path_x</span><span class="p">,</span><span class="n">rel_path_y</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">local_path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">yref</span><span class="p">,</span> <span class="n">str_ang</span></div>
+
+<div class="viewcode-block" id="Simulator.step"><a class="viewcode-back" href="../index.html#simulator.Simulator.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Execute 1 time step of simulation.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentStep</span>
+
+        <span class="n">yref</span><span class="p">,</span> <span class="n">str_ang</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcSteeringAng</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_hist</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">yaw_hist</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vehicle</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">str_ang</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_ref_hist</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">yref</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_hist</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaw_hist</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">car</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span><span class="n">z_ang</span><span class="o">=</span><span class="n">yaw</span><span class="o">*</span><span class="mi">180</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">currentStep</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sample_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_time</span>
+    <span class="nd">@sample_time</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">sample_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sample_time</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vehicle</span><span class="o">.</span><span class="n">update_sample_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sample_time</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    
+    <span class="n">sim</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">()</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">entry_point</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+
+
+
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2019, Yongkyun Shin.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

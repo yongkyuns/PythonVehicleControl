@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>controller &#8212; PythonVehicleControl 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          PythonVehicleControl</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for controller</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">.. module:: controller</span>
+<span class="sd">   :synopsis: Control algorithms for lateral control of vehicle dynamics</span>
+<span class="sd">.. moduleauthor:: Yongkyun Shin &lt;github.com/yongkyuns&gt;</span>
+
+<span class="sd">This module is a collection of algorithms for control of lateral vehicle dynamics.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vehicle</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">sparse</span>
+<span class="kn">import</span> <span class="nn">cvxpy</span>
+
+<div class="viewcode-block" id="Controller"><a class="viewcode-back" href="../index.html#controller.Controller">[docs]</a><span class="k">class</span> <span class="nc">Controller</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Generic controller parent class with some common variables (e.g. sample time, number of states, etc.)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">NU</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">NY</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">T</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">dt</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">NY</span><span class="p">,</span><span class="n">T</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">measured_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">NY</span><span class="p">,</span><span class="n">T</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control_input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">NU</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
+    
+    <span class="k">def</span> <span class="nf">control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="PID"><a class="viewcode-back" href="../index.html#controller.PID">[docs]</a><span class="k">class</span> <span class="nc">PID</span><span class="p">(</span><span class="n">Controller</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    PID controller with variable number of control points along desired path.</span>
+<span class="sd">    Control parameters are lateral position and heading. For each control point &amp; parameter,</span>
+<span class="sd">    there is a corresponding normalized weight which adds up to 1. Therefore, a single PID</span>
+<span class="sd">    controller is used to control all of the controlled states and points along desired path.</span>
+<span class="sd">    </span>
+<span class="sd">    ================  ==================================================</span>
+<span class="sd">    **Arguments:**</span>
+<span class="sd">    NU                (int) Number of controlled states</span>
+<span class="sd">    NY                (int) Number of outputs</span>
+<span class="sd">    T                 (int) Number of reference points along trajectory</span>
+<span class="sd">    dt                (float) Sample time [sec] of the controller</span>
+<span class="sd">    P_Gain            (float) Proportional gain of the controller</span>
+<span class="sd">    I_Gain            (float) Integral gain of the controller</span>
+<span class="sd">    D_Gain            (float) Derivative gain of the controller</span>
+<span class="sd">    weight_split_T    (list) Determine how to split weight on reference points (e.g. [0.5, 0.5] for equal split on all reference points)</span>
+<span class="sd">    weight_split_Y    (list) Determine how to split weight on measured output (e.g. [0.5, 0.5] for equal split on position and heading control)</span>
+<span class="sd">    </span>
+<span class="sd">    **Variables:**</span>
+<span class="sd">    weight_table      (numpy array) NY-by-T array of normalized weight for each controlled point &amp; parameter </span>
+<span class="sd">    ================  ==================================================</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">NU</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                       <span class="n">NY</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                       <span class="n">T</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                       <span class="n">dt</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                       <span class="n">P_Gain</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                       <span class="n">I_Gain</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                       <span class="n">D_Gain</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                       <span class="n">weight_split_T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">weight_split_Y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">NU</span><span class="o">=</span><span class="n">NU</span><span class="p">,</span><span class="n">NY</span><span class="o">=</span><span class="n">NY</span><span class="p">,</span><span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span><span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P_Gain</span> <span class="o">=</span> <span class="n">P_Gain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">I_Gain</span> <span class="o">=</span> <span class="n">I_Gain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">D_Gain</span> <span class="o">=</span> <span class="n">D_Gain</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__calc_weight_table</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">NY</span><span class="p">,</span><span class="n">weight_split_T</span><span class="p">,</span><span class="n">weight_split_Y</span><span class="p">)</span> 
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_integral</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_error_old</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__calc_weight_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">NY</span><span class="p">,</span> <span class="n">T_split</span><span class="p">,</span> <span class="n">Y_split</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Update normalized weight table for PID control. </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">T_split</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">Y_split</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">NY</span><span class="p">,</span><span class="n">T</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">NY</span><span class="o">*</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">NY</span><span class="p">,</span><span class="n">T</span><span class="p">))</span>
+            <span class="n">vec_T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">T_split</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">T_split</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">num</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">vec_Y</span> <span class="o">=</span> <span class="n">Y_split</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NY</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
+                    <span class="n">table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span>  <span class="n">vec_Y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">vec_T</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> 
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">table</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">table</span>
+
+<div class="viewcode-block" id="PID.control"><a class="viewcode-back" href="../index.html#controller.PID.control">[docs]</a>    <span class="k">def</span> <span class="nf">control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">error_table</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculate control input</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight_table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">e</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_table</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">error_table</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_integral</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">e</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span>
+            <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P_Gain</span> <span class="o">*</span> <span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">I_Gain</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integral</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">D_Gain</span> <span class="o">*</span> <span class="p">(</span><span class="n">e</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_error_old</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">_error_old</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">u</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="MPC"><a class="viewcode-back" href="../index.html#controller.MPC">[docs]</a><span class="k">class</span> <span class="nc">MPC</span><span class="p">(</span><span class="n">Controller</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Generic model predictive controller class. Uses linearized state-space model.</span>
+<span class="sd">    Convex optimization is solved through cvxpy module.</span>
+<span class="sd">    </span>
+<span class="sd">    ================  ==================================================</span>
+<span class="sd">    **Arguments:**</span>
+<span class="sd">    getModel          (function) Function which should return linearized state-space dynamics model as numpy array</span>
+<span class="sd">    NU                (int) Number of controlled states</span>
+<span class="sd">    NY                (int) Number of outputs</span>
+<span class="sd">    T                 (int) Number of reference points along trajectory</span>
+<span class="sd">    dt                (float) Sample time [sec] of the controller</span>
+<span class="sd">    output_weight     (float) Weight for control of the output</span>
+<span class="sd">    input_weight      (float) Weight for input constraint control</span>
+<span class="sd">    input_lim         (float) Control input limit</span>
+<span class="sd">    input_rate_lim    (float) Control input rate limit</span>
+<span class="sd">    ================  ==================================================</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">getModel</span><span class="p">,</span>
+                          <span class="n">NU</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                          <span class="n">NY</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                          <span class="n">T</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                          <span class="n">dt</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                          <span class="n">output_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">input_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">input_lim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">input_rate_lim</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">NU</span><span class="o">=</span><span class="n">NU</span><span class="p">,</span><span class="n">NY</span><span class="o">=</span><span class="n">NY</span><span class="p">,</span><span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span><span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getModel</span> <span class="o">=</span> <span class="n">getModel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_weight</span> <span class="o">=</span> <span class="n">output_weight</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_weight</span> <span class="o">=</span> <span class="n">input_weight</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_lim</span> <span class="o">=</span> <span class="n">input_lim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_rate_lim</span> <span class="o">=</span> <span class="n">input_rate_lim</span>
+
+    <span class="k">def</span> <span class="nf">control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">yref</span><span class="p">,</span><span class="n">init_state</span><span class="p">):</span>
+        <span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getModel</span><span class="p">(</span><span class="n">sample_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
+
+        <span class="n">NU</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Number of inputs to state-space model</span>
+        <span class="n">NX</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Number of states</span>
+        <span class="n">NY</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># Number of outputs</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># Prediction horizon</span>
+        <span class="n">Q_DEFAULT</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">R_DEFAULT</span> <span class="o">=</span> <span class="mi">1</span>
+        
+        <span class="c1"># Constraints</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_lim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">umax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_lim</span><span class="p">)</span>
+            <span class="n">umin</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">umax</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_rate_lim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">urmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">],[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">*</span> <span class="mi">1</span>
+            <span class="n">urmin</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">urmax</span>
+
+        <span class="c1"># Objective function</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">NY</span><span class="p">)</span> <span class="o">*</span> <span class="n">Q_DEFAULT</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_weight</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">NU</span><span class="p">)</span> <span class="o">*</span> <span class="n">R_DEFAULT</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_weight</span><span class="p">)</span>
+
+        <span class="c1"># Define problem</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="n">NU</span><span class="p">,</span> <span class="n">T</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="n">NX</span><span class="p">,</span> <span class="n">T</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="n">NY</span><span class="p">,</span> <span class="n">T</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">x_init</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">NX</span><span class="p">)</span>
+        <span class="n">x_init</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">init_state</span>
+        <span class="n">objective</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">x_init</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
+            <span class="n">objective</span> <span class="o">+=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">quad_form</span><span class="p">(</span><span class="n">y</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">yref</span><span class="p">[:,</span><span class="n">k</span><span class="p">],</span> <span class="n">Q</span><span class="p">)</span> <span class="o">+</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">quad_form</span><span class="p">(</span><span class="n">u</span><span class="p">[:,</span><span class="n">k</span><span class="p">],</span> <span class="n">R</span><span class="p">)</span>
+
+            <span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span><span class="n">x</span><span class="p">[:,</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">A</span><span class="o">*</span><span class="n">x</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="n">B</span><span class="o">*</span><span class="n">u</span><span class="p">[:,</span><span class="n">k</span><span class="p">]]</span>
+            <span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span><span class="n">y</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">==</span> <span class="n">C</span><span class="o">*</span><span class="n">x</span><span class="p">[:,</span><span class="n">k</span><span class="p">]]</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_rate_lim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span><span class="n">urmin</span> <span class="o">&lt;=</span> <span class="n">u</span><span class="p">[:,</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">u</span><span class="p">[:,</span><span class="n">k</span><span class="p">],</span> <span class="n">u</span><span class="p">[:,</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">u</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">urmax</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_lim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span><span class="n">umin</span> <span class="o">&lt;=</span> <span class="n">u</span><span class="p">[:,</span><span class="n">k</span><span class="p">],</span> <span class="n">u</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">umax</span><span class="p">]</span>
+
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cvxpy</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">objective</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+        <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cvxpy</span><span class="o">.</span><span class="n">OSQP</span><span class="p">,</span> <span class="n">warm_start</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">u</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span></div>
+
+
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2019, Yongkyun Shin.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

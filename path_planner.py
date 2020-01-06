@@ -1,4 +1,10 @@
+'''
+.. module:: path_planner
+   :synopsis: Perception and path planning module
+.. moduleauthor:: Yongkyun Shin <github.com/yongkyuns>
 
+This module implements simulated perception (e.g. lane detection from camera) and basic path planning algorithms.
+'''
 
 import sys
 sys.path.append('.')
@@ -11,7 +17,18 @@ SEARCH_RADIUS = 1000 #[m]. Search distance for finding closest path point in suc
 
 class Planner:
     '''
-    Planner receives waypoints and generates desired path
+    Perception and path planning class. This class takes waypooints as input and generats smooth
+    path (currently cubic-spline from PythonRobotics). Also, this class acts as a basic perception module in that it calculates local 'detected'
+    path from the global path, which simulates the functionality of perception stack. From the local
+    path, the reference states (e.g. lateral position & heading along the path) can be computed for
+    control.
+    
+    ================  ==================================================
+    **Arguments:**
+    ax                (list) Floats specifying x coordinates of waypoints
+    ay                (list) Floats specifying y coordinates of waypoints
+    res               (float) Spatial resolution [m] of path points 
+    ================  ==================================================
     '''
     def __init__(self,ax,ay,res=0.1):
         self._spline = cubic_spline_planner.Spline2D(ax,ay)
@@ -20,19 +37,21 @@ class Planner:
         
 
     def calc_nearest_index(self, x_pos, y_pos, search_mid_pt=0, search_range=5):
-        """
+        '''
         Calculate the index & distance of the closest path point from the current location specified in the input.
-
-        Input:
-            x_pos         --> global x coordinate of current position
-            y_pos         --> global y coordinate of current position
-            search_mid_pt --> reference index to include in search (0 is at vehicle position)
-            search_range  --> range of index to perform search from 'search_mid_pt'
         
-        Output:
-            ind           --> index of the closest path coordinate from the global path 
-            mind          --> distance to the closest path coordinate
-        """
+        ================  ==================================================
+        **Arguments:**
+        x_pos             (list) global x coordinate of current position
+        y_pos             (list) global y coordinate of current position
+        search_mid_pt     (int) reference index to include in search (0 is at current vehicle position)
+        search_range      (float) distance [m] to perform forward/backward search from 'search_mid_pt'
+        
+        **Returns:**
+        ind               (int) index of the closest path coordinate from the global path 
+        mind              (float) distance to the closest path cooridnate
+        ================  ==================================================
+        '''
         search_begin_idx = max(0,search_mid_pt - search_range)
         search_end_idx = min(len(self.x) - 1, search_mid_pt + search_range)
 
@@ -57,24 +76,28 @@ class Planner:
         return ind, mind    
     
     def detect_local_path(self, x_offset, y_offset, ang):
-        """
+        '''
         Mimic camera detection of path by generating relative path to follow with respect to vehicle coordinate.
         This function takes global path coordinates in x, y, and heading and generates relative path with respect
         to vehicle. 
-
-        Input:
-            self.x   --> global x coordinates of desired path
-            self.y   --> global y coordinates of desired path
-            self.yaw --> heading angle of path at [self.x, self.y] points
-            x_offset --> vehicle x coordinate [m] (global)
-            y_offset --> vehicle y coordinate [m] (global)
-            ang      --> vehicle heading angle [rad] (global) 
-
-        Output:
-            rel_x    --> x coordinate of path near vehicle in vehicle-centered coordinate frame
-            rel_y    --> y coordinate of path near vehicle in vehicle-centered coordinate frame
-            rel_yaw  --> relative angles of path coordinates (i.e. vehicle heading angle is 0)
-        """
+        
+        ================  ==================================================
+        **Arguments:**
+        x_offset          (float) vehicle global x coordinate [m] 
+        y_offset          (float) vehicle global y coordinate [m] 
+        ang               (float) vehicle heading angle [rad] 
+        
+        **Variables:**
+        x                 (list) global x coordinates of desired path
+        y                 (list) global y coordinates of desired path
+        yaw               (list) heading angle [rad] of path at [self.x, self.y] points
+        
+        **Returns:**
+        rel_x             (list) x coordinates of path w.r.t. vehicle
+        rel_y             (list) y coordinates of path w.r.t. vehicle
+        rel_yaw           (list) desired heading angle w.r.t. vehicle
+        ================  ==================================================
+        '''
 
         search_range = int(SEARCH_RADIUS / self._res)
         idx,_ = self.calc_nearest_index(x_offset,y_offset,search_range=search_range)
@@ -88,20 +111,23 @@ class Planner:
         return rel_x, rel_y, rel_yaw
         
     def rotate(self, x, y, rad, origin=(0, 0), relative=True):
-        """
+        '''
         Rotate a point around a given point.
+        
+        ================  ==================================================
+        **Arguments:**
+        x                 (float) x coordinate of the point to rotate
+        y                 (float) y coordinate of the point to rotate
+        rad               (float) angle to rotate the [x,y] point by
+        origin            ([float,float]) optional input to speicify origin of rotation
+        relative          (boolean) if set to True, do not tralate the [x,y] point back to origin after rotation
 
-        Input:
-            x        --> x coordinate of the point to rotate
-            y        --> y coordinate of the point to rotate
-            rad      --> angle to rotate the [x,y] point by
-            origin   --> optional input to speicify origin of rotation 
-            relative --> if set to True, do not tralate the [x,y] point back to origin after rotation
+        **Returns:**
+        qx                (list) rotated x coordinate of input [x,y]
+        qy                (list) rotated y coordinate of input [x,y]
+        ================  ==================================================
+        '''
 
-        Output:
-            qx       --> rotated x coordinate of input [x,y]
-            qy       --> rotated y coordinate of input [x,y]
-        """
         rad = -rad
         offset_x, offset_y = origin
 

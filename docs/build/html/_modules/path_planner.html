@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>path_planner &#8212; PythonVehicleControl 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          PythonVehicleControl</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for path_planner</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">.. module:: path_planner</span>
+<span class="sd">   :synopsis: Perception and path planning module</span>
+<span class="sd">.. moduleauthor:: Yongkyun Shin &lt;github.com/yongkyuns&gt;</span>
+
+<span class="sd">This module implements simulated perception (e.g. lane detection from camera) and basic path planning algorithms.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">PythonRobotics.PathPlanning.CubicSpline</span> <span class="kn">import</span> <span class="n">cubic_spline_planner</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">helper</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">SEARCH_RADIUS</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c1">#[m]. Search distance for finding closest path point in successive time step</span>
+
+<div class="viewcode-block" id="Planner"><a class="viewcode-back" href="../index.html#path_planner.Planner">[docs]</a><span class="k">class</span> <span class="nc">Planner</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Perception and path planning class. This class takes waypooints as input and generats smooth</span>
+<span class="sd">    path (currently cubic-spline from PythonRobotics). Also, this class acts as a basic perception module in that it calculates local &#39;detected&#39;</span>
+<span class="sd">    path from the global path, which simulates the functionality of perception stack. From the local</span>
+<span class="sd">    path, the reference states (e.g. lateral position &amp; heading along the path) can be computed for</span>
+<span class="sd">    control.</span>
+<span class="sd">    </span>
+<span class="sd">    ================  ==================================================</span>
+<span class="sd">    **Arguments:**</span>
+<span class="sd">    ax                (list) Floats specifying x coordinates of waypoints</span>
+<span class="sd">    ay                (list) Floats specifying y coordinates of waypoints</span>
+<span class="sd">    res               (float) Spatial resolution [m] of path points </span>
+<span class="sd">    ================  ==================================================</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ax</span><span class="p">,</span><span class="n">ay</span><span class="p">,</span><span class="n">res</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spline</span> <span class="o">=</span> <span class="n">cubic_spline_planner</span><span class="o">.</span><span class="n">Spline2D</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span><span class="n">ay</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">cubic_spline_planner</span><span class="o">.</span><span class="n">calc_spline_course</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span><span class="n">ay</span><span class="p">,</span><span class="n">res</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_res</span> <span class="o">=</span> <span class="n">res</span>
+        
+
+<div class="viewcode-block" id="Planner.calc_nearest_index"><a class="viewcode-back" href="../index.html#path_planner.Planner.calc_nearest_index">[docs]</a>    <span class="k">def</span> <span class="nf">calc_nearest_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_pos</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">,</span> <span class="n">search_mid_pt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">search_range</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculate the index &amp; distance of the closest path point from the current location specified in the input.</span>
+<span class="sd">        </span>
+<span class="sd">        ================  ==================================================</span>
+<span class="sd">        **Arguments:**</span>
+<span class="sd">        x_pos             (list) global x coordinate of current position</span>
+<span class="sd">        y_pos             (list) global y coordinate of current position</span>
+<span class="sd">        search_mid_pt     (int) reference index to include in search (0 is at current vehicle position)</span>
+<span class="sd">        search_range      (float) distance [m] to perform forward/backward search from &#39;search_mid_pt&#39;</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns:**</span>
+<span class="sd">        ind               (int) index of the closest path coordinate from the global path </span>
+<span class="sd">        mind              (float) distance to the closest path cooridnate</span>
+<span class="sd">        ================  ==================================================</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">search_begin_idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">search_mid_pt</span> <span class="o">-</span> <span class="n">search_range</span><span class="p">)</span>
+        <span class="n">search_end_idx</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">search_mid_pt</span> <span class="o">+</span> <span class="n">search_range</span><span class="p">)</span>
+
+        <span class="n">dx</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_pos</span> <span class="o">-</span> <span class="n">icx</span> <span class="k">for</span> <span class="n">icx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">search_begin_idx</span><span class="p">:</span><span class="n">search_end_idx</span><span class="p">]]</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="p">[</span><span class="n">y_pos</span> <span class="o">-</span> <span class="n">icy</span> <span class="k">for</span> <span class="n">icy</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">search_begin_idx</span><span class="p">:</span><span class="n">search_end_idx</span><span class="p">]]</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">idy</span> <span class="o">**</span> <span class="mi">2</span> <span class="k">for</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">idy</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)]</span>
+
+        <span class="n">mind</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">mind</span><span class="p">)</span> <span class="o">+</span> <span class="n">search_begin_idx</span>
+
+        <span class="n">mind</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mind</span><span class="p">)</span>
+
+        <span class="n">dxl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">-</span> <span class="n">x_pos</span>
+        <span class="n">dyl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">-</span> <span class="n">y_pos</span>
+
+        <span class="n">angle</span> <span class="o">=</span> <span class="n">pi_2_pi</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yaw</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">dyl</span><span class="p">,</span> <span class="n">dxl</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">angle</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">mind</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">ind</span><span class="p">,</span> <span class="n">mind</span>    </div>
+    
+<div class="viewcode-block" id="Planner.detect_local_path"><a class="viewcode-back" href="../index.html#path_planner.Planner.detect_local_path">[docs]</a>    <span class="k">def</span> <span class="nf">detect_local_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_offset</span><span class="p">,</span> <span class="n">y_offset</span><span class="p">,</span> <span class="n">ang</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Mimic camera detection of path by generating relative path to follow with respect to vehicle coordinate.</span>
+<span class="sd">        This function takes global path coordinates in x, y, and heading and generates relative path with respect</span>
+<span class="sd">        to vehicle. </span>
+<span class="sd">        </span>
+<span class="sd">        ================  ==================================================</span>
+<span class="sd">        **Arguments:**</span>
+<span class="sd">        x_offset          (float) vehicle global x coordinate [m] </span>
+<span class="sd">        y_offset          (float) vehicle global y coordinate [m] </span>
+<span class="sd">        ang               (float) vehicle heading angle [rad] </span>
+<span class="sd">        </span>
+<span class="sd">        **Variables:**</span>
+<span class="sd">        x                 (list) global x coordinates of desired path</span>
+<span class="sd">        y                 (list) global y coordinates of desired path</span>
+<span class="sd">        yaw               (list) heading angle [rad] of path at [self.x, self.y] points</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns:**</span>
+<span class="sd">        rel_x             (list) x coordinates of path w.r.t. vehicle</span>
+<span class="sd">        rel_y             (list) y coordinates of path w.r.t. vehicle</span>
+<span class="sd">        rel_yaw           (list) desired heading angle w.r.t. vehicle</span>
+<span class="sd">        ================  ==================================================</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">search_range</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">SEARCH_RADIUS</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_res</span><span class="p">)</span>
+        <span class="n">idx</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_nearest_index</span><span class="p">(</span><span class="n">x_offset</span><span class="p">,</span><span class="n">y_offset</span><span class="p">,</span><span class="n">search_range</span><span class="o">=</span><span class="n">search_range</span><span class="p">)</span>
+        <span class="n">start_idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">idx</span> <span class="o">-</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="n">end_idx</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">600</span><span class="p">)</span>
+
+        <span class="n">xy_pts</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="o">-</span><span class="n">ang</span><span class="p">,</span><span class="n">origin</span><span class="o">=</span><span class="p">(</span><span class="n">x_offset</span><span class="p">,</span><span class="n">y_offset</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">])]</span>
+        <span class="n">rel_x</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">xy_pts</span><span class="p">]</span>
+        <span class="n">rel_y</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">xy_pts</span><span class="p">]</span>
+        <span class="n">rel_yaw</span> <span class="o">=</span> <span class="p">[</span><span class="n">yaw</span> <span class="o">-</span> <span class="n">ang</span> <span class="k">for</span> <span class="n">yaw</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaw</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">rel_x</span><span class="p">,</span> <span class="n">rel_y</span><span class="p">,</span> <span class="n">rel_yaw</span></div>
+        
+<div class="viewcode-block" id="Planner.rotate"><a class="viewcode-back" href="../index.html#path_planner.Planner.rotate">[docs]</a>    <span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rad</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Rotate a point around a given point.</span>
+<span class="sd">        </span>
+<span class="sd">        ================  ==================================================</span>
+<span class="sd">        **Arguments:**</span>
+<span class="sd">        x                 (float) x coordinate of the point to rotate</span>
+<span class="sd">        y                 (float) y coordinate of the point to rotate</span>
+<span class="sd">        rad               (float) angle to rotate the [x,y] point by</span>
+<span class="sd">        origin            ([float,float]) optional input to speicify origin of rotation</span>
+<span class="sd">        relative          (boolean) if set to True, do not tralate the [x,y] point back to origin after rotation</span>
+
+<span class="sd">        **Returns:**</span>
+<span class="sd">        qx                (list) rotated x coordinate of input [x,y]</span>
+<span class="sd">        qy                (list) rotated y coordinate of input [x,y]</span>
+<span class="sd">        ================  ==================================================</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">rad</span> <span class="o">=</span> <span class="o">-</span><span class="n">rad</span>
+        <span class="n">offset_x</span><span class="p">,</span> <span class="n">offset_y</span> <span class="o">=</span> <span class="n">origin</span>
+
+        <span class="n">adjusted_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">offset_x</span><span class="p">)</span>
+        <span class="n">adjusted_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">offset_y</span><span class="p">)</span>
+        <span class="n">cos_rad</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rad</span><span class="p">)</span>
+        <span class="n">sin_rad</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rad</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">relative</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># If relative == True, do not tranlate the rotated pts back to the origin</span>
+            <span class="n">offset_x</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">offset_y</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">qx</span> <span class="o">=</span> <span class="n">offset_x</span> <span class="o">+</span> <span class="n">cos_rad</span> <span class="o">*</span> <span class="n">adjusted_x</span> <span class="o">+</span> <span class="n">sin_rad</span> <span class="o">*</span> <span class="n">adjusted_y</span>
+        <span class="n">qy</span> <span class="o">=</span> <span class="n">offset_y</span> <span class="o">+</span> <span class="o">-</span><span class="n">sin_rad</span> <span class="o">*</span> <span class="n">adjusted_x</span> <span class="o">+</span> <span class="n">cos_rad</span> <span class="o">*</span> <span class="n">adjusted_y</span>
+        <span class="k">return</span> <span class="n">qx</span><span class="p">,</span> <span class="n">qy</span></div>
+    
+    <span class="k">def</span> <span class="nf">calc_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yaw</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+        <span class="n">x_ref</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pos_ref</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">yaw_ref</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># stepIdxSize = int(step / self._res)</span>
+
+        <span class="c1"># temp_pos_ref = []</span>
+        <span class="c1"># temp_yaw_ref = []</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="n">x_val</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">i</span><span class="o">*</span><span class="n">step</span><span class="p">))</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">x_val</span><span class="p">)</span>
+            <span class="n">x_ref</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+            <span class="n">pos_ref</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+            <span class="n">yaw_ref</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">yaw</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+
+            <span class="c1"># temp_pos_ref.append(y[stepIdxSize*i])</span>
+            <span class="c1"># temp_yaw_ref.append(yaw[stepIdxSize*i])</span>
+        <span class="k">return</span> <span class="n">x_ref</span><span class="p">,</span> <span class="n">pos_ref</span><span class="p">,</span> <span class="n">yaw_ref</span></div>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+    <span class="kn">import</span> <span class="nn">math</span>
+
+    <span class="c1"># ax = [0.0, 60.0, 125.0, 50.0, 75.0, 30.0, -10.0]</span>
+    <span class="c1"># ay = [0.0, 0.0, 50.0, 65.0, 30.0, 50.0, -20.0]</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">500</span><span class="p">]</span>
+    <span class="n">ay</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">60</span><span class="p">]</span>
+
+    <span class="n">planner</span> <span class="o">=</span> <span class="n">Planner</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span><span class="n">ay</span><span class="p">)</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="mi">125</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="mi">40</span>
+    <span class="n">yaw</span> <span class="o">=</span> <span class="mi">20</span><span class="o">/</span><span class="mi">180</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+    
+    <span class="n">x_pts</span><span class="p">,</span> <span class="n">y_pts</span><span class="p">,</span> <span class="n">yaws</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">detect_local_path</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">yaw</span><span class="p">)</span>
+
+    <span class="n">x_ref</span><span class="p">,</span> <span class="n">pos_ref</span><span class="p">,</span> <span class="n">yaw_ref</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">calc_ref</span><span class="p">(</span><span class="n">x_pts</span><span class="p">,</span> <span class="n">y_pts</span><span class="p">,</span> <span class="n">yaws</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="c1"># plt.plot(ax,ay)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">planner</span><span class="o">.</span><span class="n">x</span><span class="p">,</span><span class="n">planner</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_pts</span><span class="p">,</span><span class="n">y_pts</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;car&quot;</span><span class="p">)</span>
+    <span class="c1"># plt.plot(planner.x[idx],planner.y[idx], &quot;xk&quot;, label=&quot;nearest&quot;)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+
+
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2019, Yongkyun Shin.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,32 +1,39 @@
-# import sys
-# import os
-# cwd = os.getcwd()
-# print(cwd)
+'''
+.. module:: simulator
+   :synopsis: Top-level simulator class for executing simulation
+.. moduleauthor:: Yongkyun Shin <github.com/yongkyuns>
+
+This module defines classes needed for executing simulation. All of the simulation-related aspects
+(e.g. simulation step, updating graphics, executing and coordinating object movement) are done
+by the simulator module.
+'''
+
 from controller import MPC, PID
 import vehicle
 import path_planner
 import visualizer as view
 import numpy as np
 
-#temp
-from pyqtgraph.Qt import QtGui
-import time
-import math
-import cvxpy
-from scipy import sparse
-from scipy import signal
-import sys
-sys.path.append('.')
-from PythonRobotics.PathPlanning.CubicSpline import cubic_spline_planner as planner
-
 try:
-    import colored_traceback.always
+    import colored_traceback.always 
 except:
     pass
 
-
-
 class Simulator:
+    '''
+    This class manages all aspects of simulation and owns data-related
+    classes (e.g. vehicle) and view-related classes (e.g. visualizer).
+    
+    ================  ==================================================
+    **Arguments:**
+    sample_time       (float) sample time of the simulation. Changing sample time will update discrete dynamics of member objects.
+    
+    **Variables:**
+    N                 (int) Maximum log data size
+    currentStep       (int) Current simulation step
+    view              (Visualizer) Main view for display              
+    ================  ==================================================
+    '''
     def __init__(self):
         self._sample_time = 0.01 # [sec]
         self.vehicle = vehicle.Vehicle(sample_time=self.sample_time)
@@ -47,6 +54,16 @@ class Simulator:
         self.init_log()
 
     def update_view_data(self,x,y,plotObject):
+        '''
+        Update the data for the line&scatter plot items
+        
+        ================  ==================================================
+        **Arguments:**
+        x                 (numpy array) 1-by-n array of x coordinates
+        y                 (numpy array) 1-by-n array of y coordinates
+        plotObject        (object) object within Visualizer for update
+        ================  ==================================================
+        '''
         path_pts = np.vstack([x,y]).transpose()
         plotObject.setData(data=path_pts)
 
@@ -59,9 +76,15 @@ class Simulator:
         self.yaw_hist = np.zeros((N,1))
 
     def run(self):
+        '''
+        Invoke entry_point of the Visualizer
+        '''
         self.view.entry_point()
 
     def calcSteeringAng(self):
+        '''
+        Determine steering input
+        '''
         # Update vehicle states
         pos_x = self.vehicle.x
         pos_y = self.vehicle.y
@@ -86,6 +109,9 @@ class Simulator:
         return yref, str_ang
 
     def step(self):
+        '''
+        Execute 1 time step of simulation.
+        '''
         i = self.currentStep
 
         yref, str_ang = self.calcSteeringAng()
