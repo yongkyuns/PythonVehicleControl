@@ -21,8 +21,11 @@ Example:
 from pyqtgraph.Qt import QtCore, QtGui
 from gl_items import Box, Line, Grid, Scatter
 import pyqtgraph.opengl as gl
+import pyqtgraph as pg
+from pyqtgraph.dockarea import *
 
-
+WINDOW_WIDTH = 1920/2
+WINDOW_HEIGHT = 1080/2
 
 class Visualizer():
     '''
@@ -36,7 +39,7 @@ class Visualizer():
     ================  ==================================================
     '''
     def __init__(self,update_func, name='Simulator', refresh_rate=50):
-        self._app, self._window = self.init_window(name)
+        self._app, self._window, self._3DView, self._pltView = self.init_window(name)
         self.add_grid()
 
         self.update_func = update_func
@@ -51,10 +54,10 @@ class Visualizer():
         self.control_points = Scatter('control points',color=[1,1,0,0.8])
         self.control_points.setParentItem(self.car)
 
-        self._window.addItem(self.car)
-        self._window.addItem(self.global_path)
-        self._window.addItem(self.local_path)
-        self._window.addItem(self.control_points)
+        self._3DView.addItem(self.car)
+        self._3DView.addItem(self.global_path)
+        self._3DView.addItem(self.local_path)
+        self._3DView.addItem(self.control_points)
 
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self.update)
@@ -72,12 +75,34 @@ class Visualizer():
         '''
         ## Create a GL View widget to display data
         app = QtGui.QApplication([])
-        w = gl.GLViewWidget() 
-        w.resize(1900/2,1080/2)
-        w.show()
-        w.setWindowTitle(name)
-        w.setCameraPosition(distance=50,elevation=90,azimuth=270) #elevation of 90deg is top view, azimuth=top-view-rotation
-        return app, w
+        win = QtGui.QMainWindow()
+        area = DockArea()
+        win.setCentralWidget(area)
+        win.resize(WINDOW_WIDTH,WINDOW_HEIGHT)
+        win.setWindowTitle(name)
+ 
+        d1 = Dock("3D View", size=(WINDOW_WIDTH/2, WINDOW_HEIGHT))     ## give this dock the minimum possible size
+        d2 = Dock("Plot", size=(WINDOW_WIDTH/2,WINDOW_HEIGHT), closable=False)
+        area.addDock(d1, 'left')      ## place d1 at left edge of dock area (it will fill the whole space since there are no other docks yet)
+        area.addDock(d2, 'right')     ## place d2 at right edge of dock area
+
+        d1.hideTitleBar()
+        d2.hideTitleBar()
+
+        glView = gl.GLViewWidget() 
+        # glView.resize(1900/2,1080/2)
+        # glView.show()
+        # glView.setWindowTitle(name)
+        glView.setCameraPosition(distance=50,elevation=90,azimuth=270) #elevation of 90deg is top view, azimuth=top-view-rotation
+        
+        pltView = pg.PlotWidget()
+
+        d1.addWidget(glView)
+        d2.addWidget(pltView)
+
+        win.show()
+
+        return app, win, glView, pltView
     
     def add_grid(self):
         '''
@@ -85,7 +110,7 @@ class Visualizer():
         '''
         g = Grid()
         g.scale(5,5,5)
-        self._window.addItem(g)
+        self._3DView.addItem(g)
     
     def update(self):
         '''
@@ -99,8 +124,8 @@ class Visualizer():
         Update the camaera focus point
         '''
         x,y = self.car.mapToView((0,0))
-        cam_center = self._window.opts['center']
-        self._window.opts['center'] = QtGui.QVector3D(x, y, cam_center[2])
+        cam_center = self._3DView.opts['center']
+        self._3DView.opts['center'] = QtGui.QVector3D(x, y, cam_center[2])
 
 
 

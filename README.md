@@ -27,6 +27,7 @@ To run the simulator, use the following shell commands in the project directory:
 ```bash
 python simulator.py
 ```
+For a more detailed documentation, please refer to https://pythonvehiclecontrol.readthedocs.io/en/master/#
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
