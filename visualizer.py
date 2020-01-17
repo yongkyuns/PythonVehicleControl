@@ -23,6 +23,7 @@ from gl_items import Box, Line, Grid, Scatter
 import pyqtgraph.opengl as gl
 import pyqtgraph as pg
 from pyqtgraph.dockarea import *
+from graph_loader import load_graph
 
 WINDOW_WIDTH = 1920/2
 WINDOW_HEIGHT = 1080/2
@@ -44,20 +45,10 @@ class Visualizer():
 
         self.update_func = update_func
 
-        self.car = Box('ego vehicle',color=(0,255,0,150),size=(4,2,1))
+        self.graph = load_graph('scene_graph.yaml')
 
-        self.global_path = Line('global path',color='r')
-
-        self.local_path = Line('detected path',color='b',width=6)
-        self.local_path.setParentItem(self.car)
-
-        self.control_points = Scatter('control points',color=[1,1,0,0.8])
-        self.control_points.setParentItem(self.car)
-
-        self._3DView.addItem(self.car)
-        self._3DView.addItem(self.global_path)
-        self._3DView.addItem(self.local_path)
-        self._3DView.addItem(self.control_points)
+        for _,obj in self.graph.items():
+            self._3DView.addItem(obj)
 
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self.update)
@@ -123,7 +114,7 @@ class Visualizer():
         '''
         Update the camaera focus point
         '''
-        x,y = self.car.mapToView((0,0))
+        x,y = self.graph['car'].mapToView((0,0))
         cam_center = self._3DView.opts['center']
         self._3DView.opts['center'] = QtGui.QVector3D(x, y, cam_center[2])
 

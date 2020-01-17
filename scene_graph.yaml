@@ -1,0 +1,21 @@
+--- # Specify plot objects
+
+- name: Ego Vehicle
+  type: Box
+  key: car
+  color: [0,255,0,150]
+  children:
+    - name: Local Path
+      type: Line
+      key: local_path
+      color: r
+    - name: Control_Points
+      type: Scatter
+      key: ctrl_pts
+      color: [1,1,0,0.8]
+
+- name: Global Path
+  type: Line
+  key: global_path
+  color: b
+

@@ -46,7 +46,7 @@ class Simulator:
 
         self.view = view.Visualizer(self.step)
         self.path = path_planner.Planner(ax,ay)
-        self.update_view_data(self.path.x,self.path.y,self.view.global_path)
+        self.update_view_data(self.path.x,self.path.y,self.view.graph['global_path'])
 
         self.controller = PID(T=5,NY=2,P_Gain=1,I_Gain=0,D_Gain=0,weight_split_T=[0.5,0.5], weight_split_Y=[0.5,0.5])
         # self.controller = MPC(self.vehicle.get_dynamics_model)
@@ -103,8 +103,8 @@ class Simulator:
         str_ang = self.controller.control(yref)
 
         #Update view
-        self.update_view_data(x_ref,pos_ref,self.view.control_points)
-        self.update_view_data(rel_path_x,rel_path_y,self.view.local_path)
+        self.update_view_data(x_ref,pos_ref,self.view.graph['ctrl_pts'])
+        self.update_view_data(rel_path_x,rel_path_y,self.view.graph['local_path'])
 
         return yref, str_ang
 
@@ -122,7 +122,7 @@ class Simulator:
         y = self.y_hist[i,0]
         yaw = self.yaw_hist[i,0]
 
-        self.view.car.setData(x=x,y=y,z_ang=yaw*180/np.pi)
+        self.view.graph['car'].setData(x=x,y=y,z_ang=yaw*180/np.pi)
 
         self.currentStep += 1
 
