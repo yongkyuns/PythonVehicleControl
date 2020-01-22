@@ -40,6 +40,7 @@ class Simulator:
         
         self.N = 10000
         self.currentStep = 0
+        self._t = 0
 
         ax = [0, 50, 100, 150, 200, 250]
         ay = [0, 0, 30, 60, 60, 60]
@@ -74,6 +75,9 @@ class Simulator:
         self.x_hist = np.zeros((N,1))
         self.y_hist = np.zeros((N,1))
         self.yaw_hist = np.zeros((N,1))
+        
+        self.t_hist = []
+        self.str_ang_hist = []
 
     def run(self):
         '''
@@ -113,6 +117,7 @@ class Simulator:
         Execute 1 time step of simulation.
         '''
         i = self.currentStep
+        self._t += self._sample_time
 
         yref, str_ang = self.calcSteeringAng()
         self.output_hist[:,i],self.x_hist[i,0],self.y_hist[i,0],self.yaw_hist[i,0] = self.vehicle.move(str_ang)
@@ -124,7 +129,12 @@ class Simulator:
 
         self.view.graph['car'].setData(x=x,y=y,z_ang=yaw*180/np.pi)
 
+        self.t_hist.append(self.t)
+        self.str_ang_hist.append(str_ang)
+        self.view.graph['str_ang'].setData(x=self.t_hist,y=self.str_ang_hist)
+
         self.currentStep += 1
+
 
     @property
     def sample_time(self):
@@ -133,6 +143,11 @@ class Simulator:
     def sample_time(self,value):
         self._sample_time = value
         self.vehicle.update_sample_time(self._sample_time)
+    
+    @property
+    def t(self):
+        return self._t
+
 
 
 def main():

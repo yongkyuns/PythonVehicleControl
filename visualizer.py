@@ -20,10 +20,11 @@ Example:
 
 from pyqtgraph.Qt import QtCore, QtGui
 from gl_items import Box, Line, Grid, Scatter
+from plot_items import Plot
 import pyqtgraph.opengl as gl
 import pyqtgraph as pg
 from pyqtgraph.dockarea import *
-from graph_loader import load_graph
+from graph_loader import load_graph, is_plot_obj
 
 WINDOW_WIDTH = 1920/2
 WINDOW_HEIGHT = 1080/2
@@ -45,10 +46,13 @@ class Visualizer():
 
         self.update_func = update_func
 
-        self.graph = load_graph('scene_graph.yaml')
+        self.graph = load_graph('view_graph.yaml')
 
         for _,obj in self.graph.items():
-            self._3DView.addItem(obj)
+            if isinstance(obj,Plot):
+                self._pltView.addItem(obj)
+            else:
+                self._3DView.addItem(obj)
 
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self.update)
@@ -86,7 +90,8 @@ class Visualizer():
         # glView.setWindowTitle(name)
         glView.setCameraPosition(distance=50,elevation=90,azimuth=270) #elevation of 90deg is top view, azimuth=top-view-rotation
         
-        pltView = pg.PlotWidget()
+        # pltView = pg.PlotWidget()
+        pltView = pg.GraphicsLayoutWidget(show=True)
 
         d1.addWidget(glView)
         d2.addWidget(pltView)

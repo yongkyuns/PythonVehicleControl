@@ -1,0 +1,40 @@
+# This file describes objects that are plotted in the visualization.
+# You can specify objects that you want to instantiate in a structured format.
+# Each visaul object must have a unique corresponding 'key', which can be used to write data to it.
+# For example, Box object has position information that can be changed through Box.setData method in your code.
+# By using object.setData method in your code for each frame, you can animate the objects in the scene.
+# The plot objects are stored in visualizer.Visualizer.graph
+# So to write to any of the object you instantiate below, you can use the following code:
+  # import visualizer
+  # def update_callback():
+  #   pass
+  # view = visualizer.Visualizer(update_callback)
+  # view.graph['car'].setData(x=10,y=10,z=0)
+
+
+--- # Specify 3D objects in the scene here
+- name: Ego Vehicle
+  type: Box
+  key: car
+  color: [0,255,0,150]
+  children:
+    - name: Local Path
+      type: Line
+      key: local_path
+      color: r
+    - name: Control_Points
+      type: Scatter
+      key: ctrl_pts
+      color: [1,1,0,0.8]
+
+- name: Global Path
+  type: Line
+  key: global_path
+  color: b
+
+# Specify 2D plot objects here
+- name: Steering Angle [Deg]
+  type: Plot
+  key: str_ang
+  color: r
+
