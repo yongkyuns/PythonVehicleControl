@@ -45,7 +45,7 @@ class Simulator:
         ax = [0, 50, 100, 150, 200, 250]
         ay = [0, 0, 30, 60, 60, 60]
 
-        self.view = view.Visualizer(self.step)
+        self.view = view.Visualizer(self.step,dx=self.sample_time)
         self.path = path_planner.Planner(ax,ay)
         self.update_view_data(self.path.x,self.path.y,self.view.graph['global_path'])
 
@@ -132,7 +132,6 @@ class Simulator:
         self.str_ang_hist.append(str_ang)
 
         self.view.graph['car'].setData(x=x,y=y,z_ang=yaw*180/np.pi)
-
         self.view.graph['str_ang'].setData(x=self.t_hist,y=self.str_ang_hist)
         self.view.graph['ref1_err'].setData(x=self.t_hist,y=self.output_ref_hist)
 
@@ -157,6 +156,7 @@ class Simulator:
     def sample_time(self,value):
         self._sample_time = value
         self.vehicle.update_sample_time(self._sample_time)
+        self.view.dx = self._sample_time
     
     @property
     def t(self):

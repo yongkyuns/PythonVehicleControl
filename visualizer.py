@@ -20,9 +20,7 @@ Example:
 
 from pyqtgraph.Qt import QtCore, QtGui
 from gl_items import Box, Line, Grid, Scatter
-
 from plot_items import Signal
-
 import pyqtgraph.opengl as gl
 import pyqtgraph as pg
 from pyqtgraph.dockarea import *
@@ -42,7 +40,7 @@ class Visualizer():
     refresh_rate      (float) Update rate of the view [ms]
     ================  ==================================================
     '''
-    def __init__(self,update_func, name='Simulator', refresh_rate=50):
+    def __init__(self,update_func, name='Simulator', refresh_rate=50, dx=0.01):
         # pg.setConfigOption('leftButtonPan', False)
 
         self._app, self._window, self._3DView, self._pltView = self.init_window(name)
@@ -58,6 +56,8 @@ class Visualizer():
                 plot.addItem(obj)
             else:
                 self._3DView.addItem(obj)
+
+        self.dx = dx # dx is used to roll the plots in time for each time step
 
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self.update)
@@ -99,11 +99,11 @@ class Visualizer():
         pltView = pg.GraphicsLayoutWidget(show=True)
 
         plot = pg.PlotItem()
-
         plot.setDownsampling(mode='peak')
         plot.setClipToView(True)
         plot.showGrid(x=True,y=True)
         plot.addLegend()
+        plot.disableAutoRange()
 
         pltView.addItem(plot,row=1,col=1)
 
@@ -128,6 +128,21 @@ class Visualizer():
         '''
         self.update_func()
         self.update_origin()
+
+        plot = self._pltView.getItem(row=1,col=1)
+        viewBox = plot.getViewBox()
+        viewRange = plot.viewRange()
+        xRange = viewRange[1]
+        yRange = viewRange[0]
+
+        viewBox.translateBy(x=self.dx)
+        # viewBox.setRange(xRange=xRange,yRange=yRange)
+        # plot.setXRange(xRange[0],xRange[1])
+        # plot.setYRange(yRange[0],yRange[1])
+        # print(xRange)
+    
+    def update_plot_ROI(self):
+        plot = self._pltView.getItem(row=1,col=1)
     
     def update_origin(self):
         '''
