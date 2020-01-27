@@ -70,12 +70,12 @@ class Simulator:
 
     def init_log(self):
         N = self.N
-        self.output_hist = np.zeros((self.vehicle.model.C.shape[0],N))
-        self.output_ref_hist = np.zeros((self.vehicle.model.C.shape[0],N))
-        self.x_hist = np.zeros((N,1))
-        self.y_hist = np.zeros((N,1))
-        self.yaw_hist = np.zeros((N,1))
-        
+        self.output_hist = []
+        self.output_ref_hist = []
+        self.x_hist = []
+        self.y_hist = []
+        self.yaw_hist = []
+
         self.t_hist = []
         self.str_ang_hist = []
 
@@ -120,18 +120,32 @@ class Simulator:
         self._t += self._sample_time
 
         yref, str_ang = self.calcSteeringAng()
-        self.output_hist[:,i],self.x_hist[i,0],self.y_hist[i,0],self.yaw_hist[i,0] = self.vehicle.move(str_ang)
-        self.output_ref_hist[:,i] = yref[:,0]
 
-        x = self.x_hist[i,0]
-        y = self.y_hist[i,0]
-        yaw = self.yaw_hist[i,0]
+        output, x, y, yaw = self.vehicle.move(str_ang)
+
+        self.output_hist.append(output)
+        self.x_hist.append(x)
+        self.y_hist.append(y)
+        self.yaw_hist.append(yaw)
+        self.output_ref_hist.append(yref[0,4])
+        self.t_hist.append(self.t)
+        self.str_ang_hist.append(str_ang)
 
         self.view.graph['car'].setData(x=x,y=y,z_ang=yaw*180/np.pi)
 
-        self.t_hist.append(self.t)
-        self.str_ang_hist.append(str_ang)
         self.view.graph['str_ang'].setData(x=self.t_hist,y=self.str_ang_hist)
+        self.view.graph['ref1_err'].setData(x=self.t_hist,y=self.output_ref_hist)
+
+        
+        # xRange = 2
+        # xPos = self.t_hist[-1]
+        # xMin = max(0, xPos-xRange/2)
+        # xMax = max(1,xPos+xRange/2)
+
+        # # self.view.graph['str_ang'].setRange(xRange=[xMin,xMax])
+        # # self.view.graph['str_ang'].setPos(self.t_hist[-1],0)
+        # self.view.graph['str_ang'].setLimits(xMin=-0.5,xMax=self.t_hist[-1]+0.5)
+        
 
         self.currentStep += 1
 

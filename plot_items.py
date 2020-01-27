@@ -27,12 +27,11 @@ class Plot(PlotItem):
     '''
 
     def __init__(self, name, color='g', data=None, **kwargs):
-        super().__init__(color=color, **kwargs)
-        self.name = name
+        super().__init__(color=color, name=name, **kwargs)
         self._data = data
 
         self.pen = mkPen(color=color, width=1.5, style=QtCore.Qt.SolidLine)
-        self.plotDataItem = PlotDataItem(pen=self.pen,antialias=False,name='hey')
+        self.plotDataItem = PlotDataItem(pen=self.pen,antialias=False,name=name)
         self.addItem(self.plotDataItem)
 
     def setData(self, data=None, **kwargs): 
@@ -52,3 +51,17 @@ class Plot(PlotItem):
         # else:
         #     print('Data is None!!')
             
+class Signal(PlotDataItem):
+
+    def __init__(self, name, color='g', data=None, **kwargs):
+        self.pen = mkPen(color=color, width=1.5, style=QtCore.Qt.SolidLine)
+        self._data = data
+        super().__init__(pen=self.pen, antialias=False, name=name, **kwargs)
+
+    def setData(self, data=None, **kwargs): 
+        if data is not None:
+            super().setData(data)
+            self._data = data
+        else:
+            super().setData(**kwargs)
+            # Update self._data here

@@ -20,7 +20,9 @@ Example:
 
 from pyqtgraph.Qt import QtCore, QtGui
 from gl_items import Box, Line, Grid, Scatter
-from plot_items import Plot
+
+from plot_items import Signal
+
 import pyqtgraph.opengl as gl
 import pyqtgraph as pg
 from pyqtgraph.dockarea import *
@@ -41,6 +43,8 @@ class Visualizer():
     ================  ==================================================
     '''
     def __init__(self,update_func, name='Simulator', refresh_rate=50):
+        # pg.setConfigOption('leftButtonPan', False)
+
         self._app, self._window, self._3DView, self._pltView = self.init_window(name)
         self.add_grid()
 
@@ -49,8 +53,9 @@ class Visualizer():
         self.graph = load_graph('view_graph.yaml')
 
         for _,obj in self.graph.items():
-            if isinstance(obj,Plot):
-                self._pltView.addItem(obj)
+            if isinstance(obj,Signal):
+                plot = self._pltView.getItem(1,1)
+                plot.addItem(obj)
             else:
                 self._3DView.addItem(obj)
 
@@ -77,7 +82,7 @@ class Visualizer():
         win.setWindowTitle(name)
  
         d1 = Dock("3D View", size=(WINDOW_WIDTH/2, WINDOW_HEIGHT))     ## give this dock the minimum possible size
-        d2 = Dock("Plot", size=(WINDOW_WIDTH/2,WINDOW_HEIGHT), closable=False)
+        d2 = Dock("Signal", size=(WINDOW_WIDTH/2,WINDOW_HEIGHT), closable=False)
         area.addDock(d1, 'left')      ## place d1 at left edge of dock area (it will fill the whole space since there are no other docks yet)
         area.addDock(d2, 'right')     ## place d2 at right edge of dock area
 
@@ -92,6 +97,15 @@ class Visualizer():
         
         # pltView = pg.PlotWidget()
         pltView = pg.GraphicsLayoutWidget(show=True)
+
+        plot = pg.PlotItem()
+
+        plot.setDownsampling(mode='peak')
+        plot.setClipToView(True)
+        plot.showGrid(x=True,y=True)
+        plot.addLegend()
+
+        pltView.addItem(plot,row=1,col=1)
 
         d1.addWidget(glView)
         d2.addWidget(pltView)

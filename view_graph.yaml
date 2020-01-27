@@ -34,7 +34,11 @@
 
 # Specify 2D plot objects here
 - name: Steering Angle [Deg]
-  type: Plot
+  type: Signal
   key: str_ang
   color: r
 
+- name: Lateral Error Ref 1 [m] 
+  type: Signal
+  key: ref1_err
+  color: g
