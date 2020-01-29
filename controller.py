@@ -7,7 +7,6 @@ This module is a collection of algorithms for control of lateral vehicle dynamic
 '''
 
 import numpy as np
-import vehicle
 from scipy import sparse
 import cvxpy
 
@@ -184,7 +183,7 @@ class MPC(Controller):
         prob = cvxpy.Problem(cvxpy.Minimize(objective), constraints)
         prob.solve(solver=cvxpy.OSQP, warm_start=True)
 
-        return u[:,0].value
+        return u[:,0].value[0]
 
 
 

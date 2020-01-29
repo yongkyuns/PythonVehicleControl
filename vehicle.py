@@ -41,11 +41,16 @@ Example:
 from scipy import signal
 import numpy as np
 import math
-import sys
-from helper import *
 
+import sys
+from helper import pi_2_pi
+
+from logger import Logger
+from controller import MPC, PID
+import path_planner
 sys.path.append('.')
 import car_params as cp
+
 
 #states
 LAT_POS  = 0
@@ -72,7 +77,7 @@ class VehicleModel:
     def __init__(self,params,sample_time):
         self.A, self.B, self.C, self.D = self.get_model_from_params(params,sample_time)
         self._sample_time = sample_time
-        
+
     def update_model(self,params,sample_time=None):
         '''
         Update the vehicle model based on updated params or sample time.
@@ -156,7 +161,7 @@ class Vehicle:
     measured              ([float, float]) Measured quantities (lateral velocity[m/s], yaw rate[rad/s])
     ====================  ==================================================
     '''
-    def __init__(self,Vx=20,m=1600,Iz=1705,lf=1.4,lr=1.4,Caf=66243,Car=66243,sample_time=0.01,init_state=None):
+    def __init__(self,Vx=20,m=1600,Iz=1705,lf=1.4,lr=1.4,Caf=66243,Car=66243,sample_time=0.01,init_state=None,controller='PID'):
         self._params = cp.CarParams(Vx,m,Iz,lf,lr,Caf,Car)
         self.model = VehicleModel(self.params,sample_time)
         self.params.register_callback(self.model.update_model)
@@ -168,6 +173,20 @@ class Vehicle:
         self.x = 0
         self.y = 0
 
+        # Globnal path waypoints
+        ax = [0, 50, 100, 150, 200, 250]
+        ay = [0, 0, 30, 60, 60, 60]
+
+        self.path = path_planner.Planner(ax,ay)
+        if controller is 'PID':
+            self.controller = PID(T=5,NY=2,P_Gain=1,I_Gain=0,D_Gain=0,weight_split_T=[0.5,0.5], weight_split_Y=[0.5,0.5])
+        elif controller is 'MPC':
+            self.controller = MPC(self.get_dynamics_model)
+        else:
+            print('Invalid controller option specified!! Either PID or MPC is accepted.')
+
+        self.logger = Logger()
+    
     @property
     def params(self):
         return self._params
@@ -197,7 +216,8 @@ class Vehicle:
         '''
         Return the measurement values of the output states.
         '''
-        return self.model.C @ self.states
+        output = self.model.C @ self.states
+        return output.flatten()
 
     def get_dynamics_model(self,sample_time=None):
         '''
@@ -233,7 +253,7 @@ class Vehicle:
         self.x += V*math.cos(ang)*dt
         self.y += V*math.sin(ang)*dt
 
-    def move(self,steering_ang):
+    def move(self,str_ang=None):
         """
         "Moves" vehicle 1 time step forward with given steering angle input [rad]. Use this function to execute 1 time step of simulation with internal dynamics model.
 
@@ -248,38 +268,60 @@ class Vehicle:
         yaw                 (float) Heading angle of the vehicle [rad]
         ==================  ==================================================
         """
-        steering_ang = np.array(steering_ang).reshape(1,1)
+
+        if str_ang is None:
+            ctrl_pt_x, ctrl_pt_y, path_x, path_y, yref, str_ang = self.calcSteeringAng()
+        else:
+            ctrl_pt_x, ctrl_pt_y, path_x, path_y, str_ang = 0,0,0,0,0
+            yref = np.array([[0,0,0,0,0],[0,0,0,0,0]])
+
+        steering_ang = np.array(str_ang).reshape(1,1)
         self.measured = self.measure_output()
         self.states = self.model.A @ self.states + self.model.B @ steering_ang
         # self.states = self.model.A.dot(self.states) + self.model.B.dot(np.array([[steering_ang]]))
         self.__update_position()
+
+        self.logger.log(ctrl_pt_x, ctrl_pt_y, path_x, path_y, self.measured, yref[0,4], self.x, self.y, self.yaw, str_ang)
+
         return self.measured.flatten(), self.x, self.y, self.yaw
 
-def main():
-    import matplotlib.pyplot as plt
-    import math
+    def calcSteeringAng(self):
+        '''
+        Determine steering input
+        '''
+        # Update vehicle states
+        pos_x = self.x
+        pos_y = self.y
+        yaw = self.yaw
+        Vx = self.params.Vx
+        
+        # Generate local path to follow --> subset of global path near vehicle in relative coordinate frame
+        rel_path_x, rel_path_y, rel_path_yaw = self.path.detect_local_path(pos_x,pos_y,yaw)
+        step = Vx*self.controller.dt
+        # Calculate reference output (lateral position, heading) from desired path
+        x_ref, pos_ref, yaw_ref = self.path.calc_ref(rel_path_x, rel_path_y, rel_path_yaw, step, self.controller.T)
+        yref = np.array([pos_ref,yaw_ref])
 
+        if isinstance(self.controller,MPC):
+            state = np.array([0,self.states[1].item(),0,self.states[3].item()])
+            str_ang = self.controller.control(yref,state)
+        elif isinstance(self.controller, PID):
+            str_ang = self.controller.control(yref)
+        else:
+            print('Incorrect controller class being used!')
+
+        return x_ref, pos_ref, rel_path_x, rel_path_y, yref, str_ang
+
+
+def main():
     car = Vehicle()
     N = 100
-    output_hist = np.zeros((car.model.C.shape[0],N))
-    state_hist = np.zeros((car.model.A.shape[0],N))
-    x_hist = np.zeros((N,1))
-    y_hist = np.zeros((N,1))
-    yaw_hist = np.zeros((N,1))
     
-    for i in range(N):
-        state_hist[:,i] = car.states.flatten()
-        output_hist[:,i],x_hist[i,0],y_hist[i,0],yaw_hist[i,0] = car.move(10*math.pi/180)
-    
-    plt.figure()
-    plt.plot(state_hist[LAT_POS,:], label='lat. pos. [m]')
-    plt.plot(state_hist[LAT_VEL,:], label='lat. vel. [m/s]')
-    plt.plot(state_hist[YAW,:],     label='yaw [rad]')
-    plt.plot(state_hist[YAW_RATE,:],label='yaw rate [rad/s]')
+    car.move()
 
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+    # for i in range(N):
+    #     _,_,_,_ = car.move(10*math.pi/180)
+    
         
 
 if __name__ == '__main__':
