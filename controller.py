@@ -181,7 +181,7 @@ class MPC(Controller):
                 constraints += [umin <= u[:,k], u[:,k] <= umax]
 
         prob = cvxpy.Problem(cvxpy.Minimize(objective), constraints)
-        prob.solve(solver=cvxpy.OSQP, warm_start=True)
+        prob.solve(solver=cvxpy.OSQP, max_iter=100, verbose=False, warm_start=True)
 
         return u[:,0].value[0]
 

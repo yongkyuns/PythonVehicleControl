@@ -127,9 +127,15 @@ class Line(gl.GLLinePlotItem):
         self._data = data
         # self.setData(data)
 
-    def setData(self, data=None, **kwargs): 
+    def setData(self, data=None, x=None, y=None, z=None, **kwargs):
         if data is not None:
             super().setData(pos=data,**kwargs)
+        elif x is not None and y is not None:
+            if z is not None:
+                data = np.vstack([x,y,z]).transpose()
+            else:
+                data = np.vstack([x,y]).transpose()
+            self.setData(pos=data)
         else:
             super().setData(**kwargs)
 
@@ -151,9 +157,15 @@ class Scatter(gl.GLScatterPlotItem):
         self.name = name
         self._data = data
     
-    def setData(self, data=None, **kwargs):
+    def setData(self, data=None, x=None, y=None, z=None, **kwargs):
         if data is not None:
             super().setData(pos=data,**kwargs)
+        elif x is not None and y is not None:
+            if z is not None:
+                data = np.vstack([x,y,z]).transpose()
+            else:
+                data = np.vstack([x,y]).transpose()
+            self.setData(pos=data)
         else:
             super().setData(**kwargs)
 
