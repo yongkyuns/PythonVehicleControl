@@ -1,7 +1,10 @@
 # PythonVehicleControl
 ![alt text](https://raw.githubusercontent.com/yongkyuns/PythonVehicleControl/master/img.png)
-PythonVehicleControl is an environment for experimentation of control algorithms and data visualization of autonomous vehicles. With an increasing level of driver-assistance features being adopted in mainstream vehicles, it is a challenge for software engineers to test prototype control algorithms for these systems and quickly analyze the measurement data produced by them in an intuitive scheme (i.e. by visualizing raw sensor measurements,
-as well as intermediate output of the software in a 3D environment). This project addresses some of these challenges by providing a simulation environment and data visualization layer which is modular and easily configurable for the task of designing autonomous vehicles. Since the project is developed in python, it also allows prototyping and evaluation of machine-learning concepts for these systems.
+PythonVehicleControl is an environment for experimentation of control algorithms and data visualization of autonomous vehicles. This project provides:
+    1. Simulation environment (i.e. dynamics model, path planning & control algorithms)
+    2. Declarative visualization (i.e. animated 3D objects and 2D graphs)
+    3. Interactive GUI
+The project is written in python and is a casual attempt to solve some of the daily challenges in desigining control algorithms for autonomous vehicles and visualizing their data in a modulalar and reconfigurable manner.
 
 ## Requirements
 This project is being developed with Python 3 and uses PythonRobotics (https://github.com/AtsushiSakai/PythonRobotics) as a submodule. For visualization, pyqtgraph is used. For a detailed list of dependencies, please refer to the requirements.txt file.

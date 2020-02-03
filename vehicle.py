@@ -161,7 +161,7 @@ class Vehicle:
     measured              ([float, float]) Measured quantities (lateral velocity[m/s], yaw rate[rad/s])
     ====================  ==================================================
     '''
-    def __init__(self,Vx=20,m=1600,Iz=1705,lf=1.4,lr=1.4,Caf=66243,Car=66243,sample_time=0.01,init_state=None,controller='PID'):
+    def __init__(self, get_time_func=None,Vx=20,m=1600,Iz=1705,lf=1.4,lr=1.4,Caf=66243,Car=66243,sample_time=0.01,init_state=None,controller='PID'):
         self._params = cp.CarParams(Vx,m,Iz,lf,lr,Caf,Car)
         self.model = VehicleModel(self.params,sample_time)
         self.params.register_callback(self.model.update_model)
@@ -172,6 +172,7 @@ class Vehicle:
         self.measured = self.measure_output()
         self.x = 0
         self.y = 0
+        self.get_time_func = get_time_func
 
         # Globnal path waypoints
         ax = [0, 50, 100, 150, 200, 250]
@@ -281,9 +282,17 @@ class Vehicle:
         # self.states = self.model.A.dot(self.states) + self.model.B.dot(np.array([[steering_ang]]))
         self.__update_position()
 
-        self.logger.log(ctrl_pt_x, ctrl_pt_y, path_x, path_y, self.measured, yref[0,4], self.x, self.y, self.yaw, str_ang)
+        
+        self.logger.log(self.get_time_now(), ctrl_pt_x, ctrl_pt_y, path_x, path_y, self.measured, yref[0,4], self.x, self.y, self.yaw, str_ang)
 
         return self.measured.flatten(), self.x, self.y, self.yaw
+
+    def get_time_now(self):
+        if self.get_time_func is not None:
+            t = self.get_time_func()
+        else:
+            t = 0
+        return t
 
     def calcSteeringAng(self):
         '''

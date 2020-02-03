@@ -1,6 +1,6 @@
 '''
 .. module:: simulator
-   :synopsis: Top-level simulator class for executing simulation
+   :synopsis: Simulator class handles execution of simulation 
 .. moduleauthor:: Yongkyun Shin <github.com/yongkyuns>
 
 This module defines classes needed for executing simulation. All of the simulation-related aspects
@@ -9,21 +9,14 @@ by the simulator module.
 '''
 
 import vehicle
-import visualizer as view
 import numpy as np
+import time
+import sys
 
 try:
     import colored_traceback.always 
 except:
     pass
-
-# view_graph object keys for visualization
-CAR = 'car'
-LOCAL_PATH = 'local_path'
-CTRL_PTS = 'ctrl_pts'
-GLOBAL_PATH = 'global_path'
-STR_ANG = 'str_ang'
-REF1_ERR = 'ref1_err'
 
 class Simulator:
     '''
@@ -42,48 +35,49 @@ class Simulator:
     ================  ==================================================
     '''
 
-    def __init__(self, dt=0.01, sim_time=10, online_mode=False):
+    def __init__(self, dt=0.01, sim_time=1, online_mode=False, verbose=False):
+        self.verbose = verbose
         self._dt = dt # [sec]
-        self.vehicle = vehicle.Vehicle(sample_time=self.sample_time,controller='PID')
+        self.vehicle = vehicle.Vehicle(get_time_func=self.get_time,sample_time=self.sample_time,controller='PID')
 
         self.currentStep = 0
         self.sim_time = sim_time
         self._t = 0
-        self.t_hist = []
 
-        self.view = view.Visualizer(self.step,dx=self.sample_time, refresh_rate=50)
-
-        self.view.graph[GLOBAL_PATH].setData(x=self.vehicle.path.x,y=self.vehicle.path.y)
+        # self.view = view.Visualizer(self.step,dx=self.sample_time, refresh_rate=50)
+        # self.view.graph[GLOBAL_PATH].setData(x=self.vehicle.path.x,y=self.vehicle.path.y)
 
     def run(self):
         '''
         Invoke entry_point of the Visualizer
         '''
-        self.view.entry_point()
+        time_begin = time.time()
+        if self.verbose is True:
+            print('Starting simulation...')
+        while self._t <= self.sim_time:
+            self.step()
+        if self.verbose is True:
+            time_end = time.time()
+            print('Finished running simulation!!!')
+            print('Time to run ' + ('%.1f' %self.sim_time) + ' seconds of simulation = ' + ('%.3f' %(time_end-time_begin)) + ' seconds!!')
+
+        return self.vehicle.logger
 
     def step(self):
         '''
         Execute 1 time step of simulation.
         '''
-        i = self.currentStep
-        self._t += self._dt
+
+        if self.verbose is True:
+            print('t = ' + ('%.3f' %self.t) + ' ms')
 
         self.vehicle.move()
-        
-        self.t_hist.append(self.t)
 
-        log = self.vehicle.logger
-        #3D Scene object update
-        self.view.graph[CAR].setData(x=log.x[i],y=log.y[i],z_ang=log.yaw[i]*180/np.pi)
-        self.view.graph[CTRL_PTS].setData(x=log.ctrl_pt_x[i], y=log.ctrl_pt_y[i])
-        self.view.graph[LOCAL_PATH].setData(x=log.path_x[i], y=log.path_y[i])
-
-        #2D Plot update
-        self.view.graph[STR_ANG].setData(x=self.t_hist,y=log.str_ang)
-        self.view.graph[REF1_ERR].setData(x=self.t_hist,y=log.ref)
-
+        self._t += self._dt
         self.currentStep += 1
 
+    def get_time(self):
+        return self.t
 
     @property
     def dt(self):
@@ -92,18 +86,21 @@ class Simulator:
     def sample_time(self,value):
         self._dt = value
         self.vehicle.update_sample_time(self._dt)
-        self.view.dx = self._dt
+        # self.view.dx = self._dt
     
     @property
     def t(self):
         return self._t
 
 
-
 def main():
-    
+    from app import Application
+
     sim = Simulator(sim_time=1)
-    sim.run()
+    log = sim.run()
+    app = Application(log)
+    app.run()
+
 
 if __name__ == '__main__':
     main()

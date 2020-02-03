@@ -11,8 +11,9 @@ class Logger():
         self.path_y = []
         self.ctrl_pt_x = []
         self.ctrl_pt_y = []
+        self.t = []
     
-    def log(self, ctrl_pt_x, ctrl_pt_y, path_x, path_y, out, ref, x, y, yaw, str_ang):
+    def log(self, t, ctrl_pt_x, ctrl_pt_y, path_x, path_y, out, ref, x, y, yaw, str_ang):
         self.out.append(out)
         self.ref.append(ref)
         self.x.append(x)
@@ -23,3 +24,4 @@ class Logger():
         self.path_y.append(path_y)
         self.ctrl_pt_x.append(ctrl_pt_x)
         self.ctrl_pt_y.append(ctrl_pt_y)
+        self.t.append(t)
