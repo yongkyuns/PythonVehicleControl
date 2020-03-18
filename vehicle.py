@@ -168,11 +168,9 @@ class Vehicle:
 
         if init_state is None:
             init_state = np.zeros((self.model.A.shape[1],1))
-        self.states = init_state
-        self.measured = self.measure_output()
-        self.x = 0
-        self.y = 0
+        self.init_state = init_state
         self.get_time_func = get_time_func
+        self.reset()
 
         # Globnal path waypoints
         ax = [0, 50, 100, 150, 200, 250]
@@ -185,8 +183,6 @@ class Vehicle:
             self.controller = MPC(self.get_dynamics_model)
         else:
             print('Invalid controller option specified!! Either PID or MPC is accepted.')
-
-        self.logger = Logger()
     
     @property
     def params(self):
@@ -206,6 +202,13 @@ class Vehicle:
     @property
     def yaw(self):
         return pi_2_pi(self.states[YAW].item())
+
+    def reset(self):
+        self.states = self.init_state
+        self.measured = self.measure_output()
+        self.x = 0
+        self.y = 0
+        self.logger = Logger()
 
     def update_sample_time(self,sample_time):
         '''

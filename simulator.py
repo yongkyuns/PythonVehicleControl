@@ -39,23 +39,35 @@ class Simulator:
         self.verbose = verbose
         self._dt = dt # [sec]
         self.vehicle = vehicle.Vehicle(get_time_func=self.get_time,sample_time=self.sample_time,controller='PID')
-
-        self.currentStep = 0
         self.sim_time = sim_time
+        self.init_param()
+    
+    def init_param(self):
+        self.currentStep = 0
         self._t = 0
+        self._prev_progress = 0
 
-        # self.view = view.Visualizer(self.step,dx=self.sample_time, refresh_rate=50)
-        # self.view.graph[GLOBAL_PATH].setData(x=self.vehicle.path.x,y=self.vehicle.path.y)
+    def __update_progress(self, msg):
+        progress = np.int(self.t / self.sim_time * 100)
+        if progress is not self._prev_progress:
+            if msg is not None:
+                msg.send(progress)
+            self._prev_progress = progress        
 
-    def run(self):
+    def run(self,msg=None):
         '''
         Invoke entry_point of the Visualizer
         '''
         time_begin = time.time()
         if self.verbose is True:
             print('Starting simulation...')
+        self.vehicle.reset()
         while self._t <= self.sim_time:
             self.step()
+            self.__update_progress(msg)
+        
+        self.init_param()
+
         if self.verbose is True:
             time_end = time.time()
             print('Finished running simulation!!!')
@@ -92,14 +104,15 @@ class Simulator:
     def t(self):
         return self._t
 
+def call_back(progress):
+    print(progress)
 
 def main():
-    from app import Application
-
-    sim = Simulator(sim_time=1)
+    begin = time.time()
+    sim = Simulator(sim_time=20,verbose=False)
     log = sim.run()
-    app = Application(log)
-    app.run()
+    print(time.time() - begin)
+    print('Final x position = ' + str(log.x[-1]) + ' m ')
 
 
 if __name__ == '__main__':
