@@ -1,18 +1,11 @@
 To Do:
     1. Visualization
-        - Offline mode (playback)
-            - Playback with experimental data (.mdf, .mf4, .dat import & formatting)
+        - Playback with experimental data (.mdf, .mf4, .dat import & formatting)
         - New items
-            - How to make scene reconfigurable? 
-                - Windows should automatically rearrange and change graph colors, in other words self-configurating
-                    - What would be needed to do this? auto GUI and auto graph?
-            - Multiple graph/colors with single Plot object
 
     2. Modeling & Control 
-        - Path detection with poly-fit, instead of nearest-point search
         - Implement steering model 
         - Adaptive control with linearized model (variable velocity)
-        - Tensorflow and RL experiment??
 
     3. Software & Distribution
         - Front-end development (GUI, tabs, widgets, interaction)
@@ -21,5 +14,4 @@ To Do:
 
     4. etc.
         - Documentation
-        - Code profiling
-        - Efficiency & performance improvement
+        - Architecture for parallel execution

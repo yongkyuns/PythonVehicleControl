@@ -38,7 +38,7 @@
   key: str_ang
   color: r
 
-- name: Lateral Error Ref 1 [m] 
+- name: Lateral Pos. Error [m] 
   type: Signal
   key: ref1_err
   color: g

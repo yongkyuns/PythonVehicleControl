@@ -4,33 +4,101 @@
 .. moduleauthor:: Yongkyun Shin <github.com/yongkyuns>
 
 This module is a collection of algorithms for control of lateral vehicle dynamics.
+Currently implemented algorithms are PID controller, Model-Predictive controller,
+and Deep-Deterministic Policy Gradient (DDPG) controller.
 '''
 
 import numpy as np
 from scipy import sparse
 import cvxpy
+import torch
+from .learning.ddpg_agent import Agent
+from .learning.model import Actor
+import sys, os
+
+
+# DDPG Params
+STATE_SIZE = 4
+ACTION_SIZE = 1
+RANDOM_SEED = 1
+CHECK_POINT = 'checkpoint_actor.pth'
+
+POS = 0
+ANG = 1
+NOW = 0
+FUTURE = 4
+
 
 class Controller:
     '''
     Generic controller parent class with some common variables (e.g. sample time, number of states, etc.)
     '''
-    def __init__(self,NU=1,NY=1,T=1,dt=0.1):
-        self.reference = np.zeros((NY,T))
-        self.measured_output = np.zeros((NY,T))
+
+    def __init__(self, NU=1, NY=1, T=1, dt=0.01):
+        self.reference = np.zeros((NY, T))
+        self.measured_output = np.zeros((NY, T))
         self.control_input = np.zeros(NU)
-        self.dt = dt
-        self.T = T
-    
+        self.dt = dt  # Controller sample time
+        self.T = T   # Number of control points along the path
+
     def control(self):
         pass
 
-class PID(Controller):
+
+class PathController(Controller):
+    '''
+    PathController has projection horizon in extension to generic Controller class.
+    Projection horizon defines the preview, or lookahead distances w.r.t. vehicle
+    '''
+    def __init__(self, NU=1, NY=1, T=1, dt=0.01, proj_horizon=0.5):
+        super().__init__(NU=NU, NY=NY, T=T, dt=dt)
+        # [sec] Use T control points along desired path for proj_horizon time
+        self.proj_horizon = proj_horizon
+
+    @property
+    def proj_step(self):
+        return self.proj_horizon / self.T
+
+
+class DDPG(PathController):
+    '''
+    Experimental controller which uses reinforcement learning algorithm.
+    '''
+    def __init__(self, check_point=CHECK_POINT, dt=0.01, T=1, NY=1, proj_horizon=0.5):
+        super().__init__(dt=dt, T=T, proj_horizon=proj_horizon)
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        if torch.cuda.is_available():
+            trained_model = torch.load(CHECK_POINT)
+        else:
+            trained_model = torch.load(
+                CHECK_POINT, map_location={'cuda:0': 'cpu'})
+
+        self.agent = Agent(state_size=STATE_SIZE,
+                           action_size=ACTION_SIZE, random_seed=RANDOM_SEED)
+        self.agent.actor_local = Actor(
+            STATE_SIZE, ACTION_SIZE, RANDOM_SEED).to(device)
+        self.agent.actor_local.load_state_dict(trained_model)
+
+    def get_state(self, yref):
+        # current/future pos reference, current/future heading reference
+        states = np.array([yref[POS, NOW], yref[POS, FUTURE],
+                           yref[ANG, NOW], yref[ANG, FUTURE]])
+        states = np.reshape(states, [ACTION_SIZE, STATE_SIZE])
+        return states
+
+    def control(self, yref):
+        states = self.get_state(yref)
+        action = self.agent.act(states, add_noise=False)
+        return float(action)
+
+
+class PID(PathController):
     '''
     PID controller with variable number of control points along desired path.
     Control parameters are lateral position and heading. For each control point & parameter,
     there is a corresponding normalized weight which adds up to 1. Therefore, a single PID
     controller is used to control all of the controlled states and points along desired path.
-    
+
     ================  ==================================================
     **Arguments:**
     NU                (int) Number of controlled states
@@ -42,26 +110,29 @@ class PID(Controller):
     D_Gain            (float) Derivative gain of the controller
     weight_split_T    (list) Determine how to split weight on reference points (e.g. [0.5, 0.5] for equal split on all reference points)
     weight_split_Y    (list) Determine how to split weight on measured output (e.g. [0.5, 0.5] for equal split on position and heading control)
-    
+
     **Variables:**
     weight_table      (numpy array) NY-by-T array of normalized weight for each controlled point & parameter 
     ================  ==================================================
     '''
+
     def __init__(self, NU=1,
                        NY=1,
                        T=1,
-                       dt=0.1,
+                       dt=0.01,
                        P_Gain=1,
                        I_Gain=0.1,
                        D_Gain=0.01,
                        weight_split_T=None,
-                       weight_split_Y=None):
-        super().__init__(NU=NU,NY=NY,T=T,dt=dt)
+                       weight_split_Y=None,
+                       proj_horizon=0.5):
+        super().__init__(NU=NU, NY=NY, T=T, dt=dt, proj_horizon=proj_horizon)
         self.P_Gain = P_Gain
         self.I_Gain = I_Gain
         self.D_Gain = D_Gain
 
-        self.weight_table = self.__calc_weight_table(T,NY,weight_split_T,weight_split_Y) 
+        self.weight_table = self.__calc_weight_table(
+            T, NY, weight_split_T, weight_split_Y)
 
         self._integral = np.zeros(T)
         self._error_old = np.zeros(T)
@@ -71,19 +142,19 @@ class PID(Controller):
         Update normalized weight table for PID control. 
         '''
         if T_split == None and Y_split == None:
-            table = np.ones((NY,T)) / (NY*T)
+            table = np.ones((NY, T)) / (NY*T)
         else:
-            table = np.zeros((NY,T))
+            table = np.zeros((NY, T))
             vec_T = np.linspace(T_split[0], T_split[1], num=T)
             vec_Y = Y_split
             for i in range(NY):
                 for j in range(T):
-                    table[i,j] =  vec_Y[i] * vec_T[j] 
+                    table[i, j] = vec_Y[i] * vec_T[j]
             if np.sum(table) > 0:
                 table /= np.sum(table)
         return table
 
-    def control(self,error_table):
+    def control(self, error_table):
         '''
         Calculate control input
         '''
@@ -91,17 +162,19 @@ class PID(Controller):
         for i in range(self.T):
             e = 0
             for j in range(self.weight_table.shape[0]):
-                e += self.weight_table[j,i] * error_table[j,i]
+                e += self.weight_table[j, i] * error_table[j, i]
             self._integral[i] += e * self.dt
-            u[i] = (self.P_Gain * e) + (self.I_Gain * self._integral[i]) + (self.D_Gain * (e-self._error_old[i])/self.dt) 
+            u[i] = (self.P_Gain * e) + (self.I_Gain * self._integral[i]
+                                        ) + (self.D_Gain * (e-self._error_old[i])/self.dt)
             self._error_old[i] = e
         return np.sum(u)
 
-class MPC(Controller):
+
+class MPC(PathController):
     '''
     Generic model predictive controller class. Uses linearized state-space model.
     Convex optimization is solved through cvxpy module.
-    
+
     ================  ==================================================
     **Arguments:**
     getModel          (function) Function which should return linearized state-space dynamics model as numpy array
@@ -115,38 +188,40 @@ class MPC(Controller):
     input_rate_lim    (float) Control input rate limit
     ================  ==================================================
     '''
-    def __init__(self,getModel,
-                          NU=1,
-                          NY=1,
-                          T=5,
-                          dt=0.1,
-                          output_weight=None,
-                          input_weight=None,
-                          input_lim=None,
-                          input_rate_lim=None):
-        super().__init__(NU=NU,NY=NY,T=T,dt=dt)
+
+    def __init__(self, getModel,
+                 NU=1,
+                 NY=1,
+                 T=5,
+                 dt=0.01,
+                 output_weight=None,
+                 input_weight=None,
+                 input_lim=None,
+                 input_rate_lim=None,
+                 proj_horizon=0.5):
+        super().__init__(NU=NU, NY=NY, T=T, dt=dt, proj_horizon=proj_horizon)
         self.getModel = getModel
         self.output_weight = output_weight
         self.input_weight = input_weight
         self.input_lim = input_lim
         self.input_rate_lim = input_rate_lim
 
-    def control(self,yref,init_state):
-        A,B,C,_ = self.getModel(sample_time=self.dt)
+    def control(self, yref, init_state):
+        A, B, C, _ = self.getModel(sample_time=self.dt)
 
-        NU = B.shape[1] # Number of inputs to state-space model
-        NX = A.shape[1] # Number of states
-        NY = C.shape[0] # Number of outputs
+        NU = B.shape[1]  # Number of inputs to state-space model
+        NX = A.shape[1]  # Number of states
+        NY = C.shape[0]  # Number of outputs
         T = self.T  # Prediction horizon
         Q_DEFAULT = 5
         R_DEFAULT = 1
-        
+
         # Constraints
         if self.input_lim is not None:
             umax = np.array(self.input_lim)
             umin = -1 * umax
         if self.input_rate_lim is not None:
-            urmax = np.array([[1],[1]]) * 1
+            urmax = np.array([[1], [1]]) * 1
             urmin = -1 * urmax
 
         # Objective function
@@ -167,29 +242,32 @@ class MPC(Controller):
         x_init = cvxpy.Parameter(NX)
         x_init.value = init_state
         objective = 0
-        constraints = [x[:,0] == x_init]
+        constraints = [x[:, 0] == x_init]
 
         for k in range(T):
-            objective += cvxpy.quad_form(y[:,k] - yref[:,k], Q) + cvxpy.quad_form(u[:,k], R)
+            objective += cvxpy.quad_form(y[:, k] -
+                                         yref[:, k], Q) + cvxpy.quad_form(u[:, k], R)
 
-            constraints += [x[:,k+1] == A*x[:,k] + B*u[:,k]]
-            constraints += [y[:,k] == C*x[:,k]]
+            constraints += [x[:, k+1] == A*x[:, k] + B*u[:, k]]
+            constraints += [y[:, k] == C*x[:, k]]
 
             if self.input_rate_lim is not None:
-                constraints += [urmin <= u[:,k+1] - u[:,k], u[:,k+1] - u[:,k] <= urmax]
+                constraints += [urmin <= u[:, k+1] -
+                                u[:, k], u[:, k+1] - u[:, k] <= urmax]
             if self.input_lim is not None:
-                constraints += [umin <= u[:,k], u[:,k] <= umax]
+                constraints += [umin <= u[:, k], u[:, k] <= umax]
 
         prob = cvxpy.Problem(cvxpy.Minimize(objective), constraints)
-        prob.solve(solver=cvxpy.OSQP, max_iter=100, verbose=False, warm_start=True)
+        prob.solve(solver=cvxpy.OSQP, max_iter=100,
+                   verbose=False, warm_start=True)
 
-        return u[:,0].value[0]
-
+        return u[:, 0].value[0]
 
 
 
 def main():
     pass
+
 
 if __name__ == '__main__':
     main()

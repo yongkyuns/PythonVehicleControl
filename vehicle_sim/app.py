@@ -18,19 +18,22 @@ Example:
     app.run()
 '''
 
-from simulator import Simulator
-from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
-from gl_items import Box, Line, Grid, Scatter
-from plot_items import Signal
-import pyqtgraph.opengl as gl
 import pyqtgraph as pg
+import pyqtgraph.opengl as gl
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 # from pyqtgraph.dockarea import *
-from graph_loader import load_graph
-from gl_view import GLView
-from plot_view import PlotView
-from gui_view import GUIView
-from qt_worker import Worker
-import qt_dark_style
+import numpy as np
+import time
+
+from .core.simulator import Simulator
+from .view.gl_items import Box, Line, Grid, Scatter
+from .view.plot_items import Signal
+from .view.graph_loader import load_graph
+from .view.gl_view import GLView
+from .view.plot_view import PlotView
+from .view.gui_view import GUIView
+from .helper.qt_worker import Worker
+from .view import qt_dark_style
 
 WINDOW_WIDTH = 1920/2
 WINDOW_HEIGHT = 1080/2
@@ -48,7 +51,6 @@ STR_ANG = 'str_ang'
 REF1_ERR = 'ref1_err'
 
 
-
 class Application(QtCore.QObject):
     '''
     This class uses pyqtgraph and is a primary interface for interacting with the PyQt window.
@@ -56,15 +58,15 @@ class Application(QtCore.QObject):
     ================  ==================================================
     **Arguments:**
     update_func       (function) Function to be executed by PyQt at each time step
-    name              (string) Name of the window
     refresh_rate      (float) Update rate of the view [ms]
+    dx                (float) Time resolution for rolling the plot in animation
     ================  ==================================================
     '''
 
     sim_finished_signal = QtCore.pyqtSignal()
     sim_progress_signal = QtCore.pyqtSignal(int)
 
-    def __init__(self, update_func=None, refresh_rate=10, dx=0.01):
+    def __init__(self, update_func=None, refresh_rate=33, dx=0.01):
         super().__init__()
         # pg.setConfigOption('leftButtonPan', False)
 
@@ -74,10 +76,14 @@ class Application(QtCore.QObject):
         scene_file = 'view_graph'
         self.graph = load_graph(scene_file.split('.yaml')[0]+'.yaml')
 
+        self.simulator = Simulator(sim_time=3,verbose=False)
+        
         self._3DView = GLView(self.graph)
         self._pltView = PlotView(self.graph,dx=dx)
-        self._GUIView = GUIView(self.sim_run, self.sim_finished_signal, self.sim_progress_signal)
+        self._GUIView = GUIView(self.sim_run, self.sim_finished_signal, self.sim_progress_signal,self.simulator.sim_time)
         self._window = self.__init_window(self._3DView, self._pltView, self._GUIView)
+
+        self._GUIView.sim_time_changed_signal.connect(self.update_sim_time)
  
         self._3DView.setFocusOnObj(self.graph[CAR])
 
@@ -88,10 +94,9 @@ class Application(QtCore.QObject):
         self._timer.timeout.connect(self.update)
         self._timer.start(refresh_rate)
 
-        self.simulator = Simulator(sim_time=20,verbose=False)
-        self.graph[GLOBAL_PATH].setData(x=self.simulator.vehicle.path.x,y=self.simulator.vehicle.path.y)
-
         self.threadpool = QtCore.QThreadPool()
+
+        self.loop_time = time.time()
 
 
     def __entry_point(self):
@@ -103,11 +108,28 @@ class Application(QtCore.QObject):
 
     def __init_window(self,glView,pltView,GUIView):
         '''
-        Initialize PyQt window and default camera position.
+        Initialize window with all the views.
+        
+        ================  ==================================================
+        **Arguments:**
+        glView            (GLView) OpenGL 3D view 
+        pltView           (PlotView) View for displaying pyqtgraph plot
+        GUIView           (GUIView) View for the GUI and buttons/controls
+        
+        **Returns:**
+        win               (QWidget) Main PyQt window 
+        ================  ==================================================
         '''
         ## Create a GL View widget to display data
         # win = QtGui.QMainWindow()
         win = QtWidgets.QWidget()
+
+        win.setAutoFillBackground(True)
+        # p = win.palette()
+        # p.setColor(win.backgroundRole(),QtGui.qRed)
+        # win.setPalette(p)
+        # win.setStyleSheet("background-color: black;")
+
         # win.setCentralWidget(area)
         win.resize(WINDOW_WIDTH,WINDOW_HEIGHT)
         win.setWindowTitle(WINDOW_TITLE)
@@ -143,7 +165,11 @@ class Application(QtCore.QObject):
 
         return win
 
+    def update_sim_time(self, time):
+        self.simulator.sim_time = time
+
     def sim_run(self,finished_call_back=None):
+        self.simulator.vehicle.generate_new_path()
         # Prepare simulation to be run on threads or processes
         worker = Worker(self.sim_run_thread, self.simulator, progress_fn=self.progress_fn, useMultiProcessing=True,verbose=True) 
         worker.signals.result.connect(self.sim_finished)
@@ -160,21 +186,24 @@ class Application(QtCore.QObject):
         self.sim_progress_signal.emit(n)
 
     def sim_finished(self,log):
-        # print('final x = ' + str(log.x[-1]))
         self.log = log
         self.play = True
         self.currentStep = 0
         self.sim_finished_signal.emit()
+        self.graph[GLOBAL_PATH].setData(x=self.simulator.vehicle.path.x,y=self.simulator.vehicle.path.y)
     
     def start(self):
         self.__entry_point()
 
     def __resetPlayback(self):
             self.currentStep = 0
-            self._pltView.translateBy(-self.simulator.sim_time)
+            self._pltView.translateBy(-self.log.t[-1])
 
     def __updateView(self):
         i = self.currentStep
+
+        # print('Loop Time = ' + ('%.3f' %(time.time() - self.loop_time)) + ' sec')
+        self.loop_time = time.time()
 
         #3D Scene object update
         log = self.log
@@ -182,11 +211,11 @@ class Application(QtCore.QObject):
         self.graph[CTRL_PTS].setData(x=log.ctrl_pt_x[i], y=log.ctrl_pt_y[i])
         self.graph[LOCAL_PATH].setData(x=log.path_x[i], y=log.path_y[i])
         #2D Plot update
-        self.graph[STR_ANG].setData(x=log.t[:i],y=log.str_ang[:i])
+        self.graph[STR_ANG].setData(x=log.t[:i],y=np.rad2deg(log.str_ang[:i]))
         self.graph[REF1_ERR].setData(x=log.t[:i],y=log.ref[:i])
 
     def __timeReachedEnd(self):
-        return (self.currentStep * self.simulator.sample_time) >= self.simulator.sim_time
+        return self.currentStep >= len(self.log.t)
 
     def update(self):
         '''

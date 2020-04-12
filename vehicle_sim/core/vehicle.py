@@ -43,20 +43,23 @@ import numpy as np
 import math
 
 import sys
-from helper import pi_2_pi
+from vehicle_sim.helper.helper import pi_2_pi
 
-from logger import Logger
-from controller import MPC, PID
-import path_planner
-sys.path.append('.')
-import car_params as cp
-
+from vehicle_sim.helper.logger import Logger
+from vehicle_sim.core.controller import MPC, PID, DDPG
+from vehicle_sim.core import path_planner
+from vehicle_sim.core import car_params as cp
 
 #states
 LAT_POS  = 0
 LAT_VEL  = 1
 YAW      = 2
 YAW_RATE = 3
+
+NUM_WAYPTS = 6 # Number of waypoints to generate path from
+PATH_LEN = 250 # [meters]
+PATH_LATERAL_SIGMA = 10 # [meters] Sigma for normal distribution to vary lateral path points
+PATH_VARIATION_FACTOR = 1 # [no unit] Used for scaling lateral waypoint variation. If larger, road gets more curvy toward end
 
 class VehicleModel:
     '''
@@ -170,17 +173,29 @@ class Vehicle:
             init_state = np.zeros((self.model.A.shape[1],1))
         self.init_state = init_state
         self.get_time_func = get_time_func
+
         self.reset()
+        self.generate_new_path()
 
-        # Globnal path waypoints
-        ax = [0, 50, 100, 150, 200, 250]
-        ay = [0, 0, 30, 60, 60, 60]
-
-        self.path = path_planner.Planner(ax,ay)
         if controller is 'PID':
-            self.controller = PID(T=5,NY=2,P_Gain=1,I_Gain=0,D_Gain=0,weight_split_T=[0.5,0.5], weight_split_Y=[0.5,0.5])
+            self.controller = PID(dt=sample_time,
+                                  T=5,
+                                  NY=2,
+                                  P_Gain=1,
+                                  I_Gain=0,
+                                  D_Gain=0,
+                                  weight_split_T=[0.5,0.5], 
+                                  weight_split_Y=[0.5,0.5],
+                                  proj_horizon=0.5)
         elif controller is 'MPC':
-            self.controller = MPC(self.get_dynamics_model)
+            self.controller = MPC(self.get_dynamics_model,
+                                  T=5,
+                                  dt=sample_time,
+                                  proj_horizon=0.5)
+        elif controller is 'DDPG':
+            self.controller = DDPG(T=5,
+                                   proj_horizon=0.5,
+                                   dt=sample_time)
         else:
             print('Invalid controller option specified!! Either PID or MPC is accepted.')
     
@@ -222,6 +237,27 @@ class Vehicle:
         '''
         output = self.model.C @ self.states
         return output.flatten()
+
+    def generate_new_path(self):
+        x,y = self.__generate_random_waypoints()
+        self.path = path_planner.Planner(x,y)
+        # return path_planner.Planner(x,y)
+
+    def __generate_random_waypoints(self):
+        # Global path waypoints
+        # x = [0, 50, 100, 150, 200, 250]
+        # y = [0, 0, 30, 60, 60, 0]
+    
+        N = NUM_WAYPTS
+        x = np.linspace(0, PATH_LEN, N)
+        y = [0] * N
+        mu, sigma = 0, PATH_LATERAL_SIGMA
+
+        s = np.random.normal(mu, sigma, N)
+        for i in range(1,N-1):
+            y[i+1] = y[i] + s[i] * (1+(i+1)/N*PATH_VARIATION_FACTOR) 
+
+        return list(x),list(y)
 
     def get_dynamics_model(self,sample_time=None):
         '''
@@ -274,9 +310,10 @@ class Vehicle:
         """
 
         if str_ang is None:
-            ctrl_pt_x, ctrl_pt_y, path_x, path_y, yref, str_ang = self.calcSteeringAng()
+            ctrl_pt_x, ctrl_pt_y, path_x, path_y, yref = self.detect_and_plan()
+            str_ang = self.control(yref)
         else:
-            ctrl_pt_x, ctrl_pt_y, path_x, path_y, str_ang = 0,0,0,0,0
+            ctrl_pt_x, ctrl_pt_y, path_x, path_y = 0,0,0,0
             yref = np.array([[0,0,0,0,0],[0,0,0,0,0]])
 
         steering_ang = np.array(str_ang).reshape(1,1)
@@ -294,47 +331,65 @@ class Vehicle:
         if self.get_time_func is not None:
             t = self.get_time_func()
         else:
+            # print('Time function is not available in Vehicle object. Returning 0')
             t = 0
         return t
 
-    def calcSteeringAng(self):
+    def control(self,yref):
         '''
         Determine steering input
         '''
-        # Update vehicle states
-        pos_x = self.x
-        pos_y = self.y
-        yaw = self.yaw
-        Vx = self.params.Vx
-        
-        # Generate local path to follow --> subset of global path near vehicle in relative coordinate frame
-        rel_path_x, rel_path_y, rel_path_yaw = self.path.detect_local_path(pos_x,pos_y,yaw)
-        step = Vx*self.controller.dt
-        # Calculate reference output (lateral position, heading) from desired path
-        x_ref, pos_ref, yaw_ref = self.path.calc_ref(rel_path_x, rel_path_y, rel_path_yaw, step, self.controller.T)
-        yref = np.array([pos_ref,yaw_ref])
-
         if isinstance(self.controller,MPC):
-            state = np.array([0,self.states[1].item(),0,self.states[3].item()])
+            state = np.array([0,self.states[LAT_VEL].item(),0,self.states[YAW_RATE].item()])
             str_ang = self.controller.control(yref,state)
-        elif isinstance(self.controller, PID):
+        elif isinstance(self.controller, PID) or isinstance(self.controller, DDPG):
             str_ang = self.controller.control(yref)
         else:
             print('Incorrect controller class being used!')
+        return str_ang
 
-        return x_ref, pos_ref, rel_path_x, rel_path_y, yref, str_ang
+    def detect_and_plan(self):
+        # Update vehicle states
+        Vx = self.params.Vx
+        
+        # Generate local path to follow --> subset of global path near vehicle in relative coordinate frame
+        # rel_path_x, rel_path_y, rel_path_yaw = self.path.detect_local_path(pos_x,pos_y,yaw)
+        rel_path_x, rel_path_y, rel_path_yaw = self.path.detect_local_path_with_FOV(self.x,self.y,self.yaw)
+        step = Vx*self.controller.proj_step
+
+        # Calculate reference output (lateral position, heading) from desired path
+        x_ref, pos_ref, yaw_ref = self.path.calc_ref(rel_path_x, rel_path_y, rel_path_yaw, step, self.controller.T)
+        yref = np.array([pos_ref,yaw_ref])
+        return x_ref, pos_ref, rel_path_x, rel_path_y, yref
 
 
 def main():
     car = Vehicle()
     N = 100
-    
-    car.move()
+    for i in range(N):
+        car.move()
 
-    # for i in range(N):
-    #     _,_,_,_ = car.move(10*math.pi/180)
-    
         
 
 if __name__ == '__main__':
-    main()
+    import cProfile
+    cProfile.run('main()',sort='cumtime')
+
+    # import matplotlib.pyplot as plt
+
+    # N = 11
+    # ax = np.linspace(0, 500, N)
+    # ay = [0] * N
+    # mu, sigma = 0, 5
+
+    # for j in range(20):
+    #     s = np.random.normal(mu, sigma, N)
+    #     for i in range(N-1):
+    #         # ay[i+1] = ay[i] + np.random.randint(-30,30)
+    #         ay[i+1] = ay[i] + s[i] * (1+(i+1)/N) 
+    #     path = path_planner.Planner(ax,ay)
+    #     plt.plot(path.x,path.y)
+
+    # plt.axis('equal')
+    # plt.grid()
+    # plt.show()

@@ -1,4 +1,4 @@
-from plot_items import Signal
+from .plot_items import Signal
 from pyqtgraph.widgets.GraphicsLayoutWidget import GraphicsLayoutWidget
 from pyqtgraph.graphicsItems.PlotItem import PlotItem
 

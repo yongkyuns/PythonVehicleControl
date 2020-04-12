@@ -2,6 +2,9 @@
 ###################
 *scratch*.py
 *scratch*.m
+scratch/
+temp.py
+*checkpoint*.pth
 
 # Dev environment #
 ###################

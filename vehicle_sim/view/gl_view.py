@@ -1,7 +1,7 @@
 # import pyqtgraph.opengl as gl
 from pyqtgraph.opengl.GLViewWidget import GLViewWidget
-from gl_items import Box, Line, Grid, Scatter
 from pyqtgraph.Qt import QtGui
+from .gl_items import Box, Line, Grid, Scatter
 
 class GLView(GLViewWidget):
     def __init__(self, obj_dict):

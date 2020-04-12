@@ -1,7 +1,8 @@
 import yaml
-from gl_items import Box, Line, Grid, Scatter
-from plot_items import Signal
+from .gl_items import Box, Line, Grid, Scatter
+from .plot_items import Signal
 import pyqtgraph as pg
+import os
 
 # Names of the dictionary keys used in yaml graph file
 TYPE = 'type'
@@ -58,7 +59,7 @@ def is_plot_obj(obj):
         return False
 
 def load_graph(file_name):
-    with open('./'+file_name) as file:
+    with open(os.path.dirname(__file__) + '/' + file_name) as file:
         yaml_objects = yaml.load(file,Loader=yaml.FullLoader)
         graph = {}
     for obj in yaml_objects:
