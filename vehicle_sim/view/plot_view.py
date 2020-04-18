@@ -1,6 +1,7 @@
 from .plot_items import Signal
 from pyqtgraph.widgets.GraphicsLayoutWidget import GraphicsLayoutWidget
 from pyqtgraph.graphicsItems.PlotItem import PlotItem
+from pyqtgraph.Qt import QtCore
 
 class PlotView(GraphicsLayoutWidget):
     def __init__(self,obj_dict,dx=0.01):
@@ -12,6 +13,8 @@ class PlotView(GraphicsLayoutWidget):
         plot.showGrid(x=True,y=True)
         plot.addLegend()
         plot.disableAutoRange()
+        plot.setYRange(-10,10)
+        plot.setXRange(-1.7,1.7)
 
         self.addItem(plot,row=1,col=1)
 

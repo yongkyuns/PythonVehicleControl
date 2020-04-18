@@ -10,12 +10,12 @@ and Deep-Deterministic Policy Gradient (DDPG) controller.
 
 import numpy as np
 from scipy import sparse
-import cvxpy
+import cvxpy as cp
 import torch
 from .learning.ddpg_agent import Agent
 from .learning.model import Actor
 import sys, os
-
+# import acado
 
 # DDPG Params
 STATE_SIZE = 4
@@ -126,7 +126,7 @@ class PID(PathController):
                        weight_split_T=None,
                        weight_split_Y=None,
                        proj_horizon=0.5):
-        super().__init__(NU=NU, NY=NY, T=T, dt=dt, proj_horizon=proj_horizon)
+        super().__init__(T=T, dt=dt, proj_horizon=proj_horizon)
         self.P_Gain = P_Gain
         self.I_Gain = I_Gain
         self.D_Gain = D_Gain
@@ -190,8 +190,6 @@ class MPC(PathController):
     '''
 
     def __init__(self, getModel,
-                 NU=1,
-                 NY=1,
                  T=5,
                  dt=0.01,
                  output_weight=None,
@@ -199,16 +197,19 @@ class MPC(PathController):
                  input_lim=None,
                  input_rate_lim=None,
                  proj_horizon=0.5):
-        super().__init__(NU=NU, NY=NY, T=T, dt=dt, proj_horizon=proj_horizon)
+        
+        super().__init__(NU=1, NY=1, T=T, dt=dt, proj_horizon=proj_horizon)
         self.getModel = getModel
         self.output_weight = output_weight
         self.input_weight = input_weight
         self.input_lim = input_lim
         self.input_rate_lim = input_rate_lim
 
-    def control(self, yref, init_state):
-        A, B, C, _ = self.getModel(sample_time=self.dt)
+        self.setup_problem()
+        
 
+    def setup_problem(self):
+        A, B, C, _ = self.getModel(sample_time=self.dt)
         NU = B.shape[1]  # Number of inputs to state-space model
         NX = A.shape[1]  # Number of states
         NY = C.shape[0]  # Number of outputs
@@ -236,32 +237,136 @@ class MPC(PathController):
             R = sparse.diags(self.input_weight)
 
         # Define problem
-        u = cvxpy.Variable((NU, T+1))
-        x = cvxpy.Variable((NX, T+1))
-        y = cvxpy.Variable((NY, T+1))
-        x_init = cvxpy.Parameter(NX)
-        x_init.value = init_state
+        self.u = cp.Variable((NU, T+1)) # T has one extra buffer element at the end 
+        x = cp.Variable((NX, T+1))
+        y = cp.Variable((NY, T+1))
+        self.y_ref = cp.Parameter((NY, T))
+        # self.y_ref.value = np.zeros((NY, T))
+        self.x_init = cp.Parameter(NX)
+        # self.x_init.value = np.zeros((NX,1))
         objective = 0
-        constraints = [x[:, 0] == x_init]
+        constraints = [x[:, 0] == self.x_init]
 
         for k in range(T):
-            objective += cvxpy.quad_form(y[:, k] -
-                                         yref[:, k], Q) + cvxpy.quad_form(u[:, k], R)
+            objective += cp.quad_form(y[:, k] -
+                                         self.y_ref[:, k], Q) + cp.quad_form(self.u[:, k], R)
 
-            constraints += [x[:, k+1] == A*x[:, k] + B*u[:, k]]
+            constraints += [x[:, k+1] == A*x[:, k] + B*self.u[:, k]]
             constraints += [y[:, k] == C*x[:, k]]
 
             if self.input_rate_lim is not None:
-                constraints += [urmin <= u[:, k+1] -
-                                u[:, k], u[:, k+1] - u[:, k] <= urmax]
+                constraints += [urmin <= self.u[:, k+1] -
+                                self.u[:, k], self.u[:, k+1] - self.u[:, k] <= urmax]
             if self.input_lim is not None:
-                constraints += [umin <= u[:, k], u[:, k] <= umax]
+                constraints += [umin <= self.u[:, k], self.u[:, k] <= umax]
 
-        prob = cvxpy.Problem(cvxpy.Minimize(objective), constraints)
-        prob.solve(solver=cvxpy.OSQP, max_iter=100,
-                   verbose=False, warm_start=True)
+        self.prob = cp.Problem(cp.Minimize(objective), constraints)
 
-        return u[:, 0].value[0]
+
+    def update_values(self, x_init, y_ref):
+        self.y_ref.value = y_ref
+        self.x_init.value = x_init
+
+    def control(self,y_desired, init_state):
+        self.update_values(init_state, y_desired)
+        # self.prob.solve(solver=cp.OSQP, max_iter=100,
+                #    verbose=False, warm_start=True)
+        self.prob.solve()
+        return self.u[:, 0].value[0]
+
+    def control_with_acado(self, y_desired, init_state):
+        A, B, C, _ = self.getModel(sample_time=self.dt)
+        NU = B.shape[1]    # Number of inputs to state-space model
+        NX = A.shape[1]    # Number of states
+        NYN = NX#C.shape[0]   # Number of outputs
+        NY = NX+NU        # Control problem
+        T = self.T         # Prediction horizon
+
+        x0=np.zeros((1,NX))  
+        X=np.zeros((T+1,NX))
+        X[0:T,1] = y_desired[0,:]
+        X[0:T,3] = y_desired[1,:]
+        U=np.zeros((T,NU))    
+        Y=np.concatenate((X[0:T,:],np.zeros((T,NU))),axis=1)
+        # Y = np.zeros((T,NY))  
+        yN=np.zeros((1,NYN))  
+        x0[0,:]=init_state  # initial state 
+        yN[0,:]=Y[-1,:NYN]         # reference terminal state 
+
+        # Objective function
+        Q_DEFAULT = 5
+        R_DEFAULT = 1
+        # Q = sparse.eye(NY) * Q_DEFAULT
+        # Qf = sparse.eye(NYN) * Q_DEFAULT
+        # R = sparse.eye(NU) * R_DEFAULT
+        Q = np.diag([Q_DEFAULT,0,Q_DEFAULT,0,R_DEFAULT])
+        Qf = np.diag([Q_DEFAULT,0,Q_DEFAULT,0])
+
+        X, U = acado.mpc(0, 1, x0, X,U,Y,yN, np.transpose(np.tile(Q,T)), Qf, 0) 
+
+        if U[0] != 0 or U[4] != 0:
+            print('NOT ZERO!!!!')
+        return 0
+
+    # def control2(self, y_desired, init_state):
+    #     A, B, C, _ = self.getModel(sample_time=self.dt)
+
+    #     NU = B.shape[1]  # Number of inputs to state-space model
+    #     NX = A.shape[1]  # Number of states
+    #     NY = C.shape[0]  # Number of outputs
+    #     T = self.T  # Prediction horizon
+    #     Q_DEFAULT = 5
+    #     R_DEFAULT = 1
+
+    #     # Constraints
+    #     if self.input_lim is not None:
+    #         umax = np.array(self.input_lim)
+    #         umin = -1 * umax
+    #     if self.input_rate_lim is not None:
+    #         urmax = np.array([[1], [1]]) * 1
+    #         urmin = -1 * urmax
+
+    #     # Objective function
+    #     if self.output_weight is None:
+    #         Q = sparse.eye(NY) * Q_DEFAULT
+    #     else:
+    #         Q = sparse.diags(self.output_weight)
+
+    #     if self.input_weight is None:
+    #         R = sparse.eye(NU) * R_DEFAULT
+    #     else:
+    #         R = sparse.diags(self.input_weight)
+
+    #     # Define problem
+    #     u = cp.Variable((NU, T+1)) # T has one extra buffer element at the end 
+    #     x = cp.Variable((NX, T+1))
+    #     y = cp.Variable((NY, T+1))
+    #     yref = cp.Parameter((NY, T))
+    #     x_init = cp.Parameter(NX)
+    #     objective = 0
+    #     constraints = [x[:, 0] == x_init]
+        
+    #     yref.value = y_desired
+    #     x_init.value = init_state
+
+    #     for k in range(T):
+    #         objective += cp.quad_form(y[:, k] -
+    #                                      yref[:, k], Q) + cp.quad_form(u[:, k], R)
+
+    #         constraints += [x[:, k+1] == A*x[:, k] + B*u[:, k]]
+    #         constraints += [y[:, k] == C*x[:, k]]
+
+    #         if self.input_rate_lim is not None:
+    #             constraints += [urmin <= u[:, k+1] -
+    #                             u[:, k], u[:, k+1] - u[:, k] <= urmax]
+    #         if self.input_lim is not None:
+    #             constraints += [umin <= u[:, k], u[:, k] <= umax]
+
+    #     prob = cp.Problem(cp.Minimize(objective), constraints)
+    #     prob.solve(solver=cp.OSQP, max_iter=100,
+    #                verbose=False, warm_start=True)
+
+    #     return u[:, 0].value[0]
 
 
 

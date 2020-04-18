@@ -59,14 +59,13 @@ class Application(QtCore.QObject):
     **Arguments:**
     update_func       (function) Function to be executed by PyQt at each time step
     refresh_rate      (float) Update rate of the view [ms]
-    dx                (float) Time resolution for rolling the plot in animation
     ================  ==================================================
     '''
 
     sim_finished_signal = QtCore.pyqtSignal()
     sim_progress_signal = QtCore.pyqtSignal(int)
 
-    def __init__(self, update_func=None, refresh_rate=33, dx=0.01):
+    def __init__(self, update_func=None, refresh_rate=33):
         super().__init__()
         # pg.setConfigOption('leftButtonPan', False)
 
@@ -79,7 +78,7 @@ class Application(QtCore.QObject):
         self.simulator = Simulator(sim_time=3,verbose=False)
         
         self._3DView = GLView(self.graph)
-        self._pltView = PlotView(self.graph,dx=dx)
+        self._pltView = PlotView(self.graph,dx=self.simulator.dt)
         self._GUIView = GUIView(self.sim_run, self.sim_finished_signal, self.sim_progress_signal,self.simulator.sim_time)
         self._window = self.__init_window(self._3DView, self._pltView, self._GUIView)
 
@@ -171,16 +170,18 @@ class Application(QtCore.QObject):
     def sim_run(self,finished_call_back=None):
         self.simulator.vehicle.generate_new_path()
         # Prepare simulation to be run on threads or processes
-        worker = Worker(self.sim_run_thread, self.simulator, progress_fn=self.progress_fn, useMultiProcessing=True,verbose=True) 
+        worker = Worker(self.sim_run_thread, self.simulator, progress_fn=self.progress_fn, useMultiProcessing=False,verbose=True) 
         worker.signals.result.connect(self.sim_finished)
         worker.signals.progress.connect(self.progress_fn) 
         
         # Execute
         self.threadpool.start(worker) 
 
-    def sim_run_thread(self, sim, q, p):
+    def sim_run_thread(self, sim, q, p=None):
         log = sim.run(msg=p)
-        q.put(log)
+        # q.put(log)   # Passing through Multiprocessing.Queue much slower than using return
+        return log
+        
         
     def progress_fn(self, n):
         self.sim_progress_signal.emit(n)

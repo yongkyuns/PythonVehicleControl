@@ -117,7 +117,7 @@ def train(n_episodes=2000, max_t=20000):
             torch.save(agent.critic_local.state_dict(), 'checkpoint_critic.pth')
             break
 
-
+ 
     plt.plot(np.arange(1, len(total_scores)+1), total_scores)
     plt.ylabel('Score')
     plt.xlabel('Episode #')

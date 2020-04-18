@@ -5,18 +5,17 @@
 # By using object.setData method in your code for each frame, you can animate the objects in the scene.
 # The plot objects are stored in visualizer.Visualizer.graph
 # So to write to any of the object you instantiate below, you can use the following code:
-  # import visualizer
-  # def update_callback():
-  #   pass
-  # view = visualizer.Visualizer(update_callback)
-  # view.graph['car'].setData(x=10,y=10,z=0)
-
+# import visualizer
+# def update_callback():
+#   pass
+# view = visualizer.Visualizer(update_callback)
+# view.graph['car'].setData(x=10,y=10,z=0)
 
 --- # Specify 3D objects in the scene here
 - name: Ego Vehicle
   type: Box
   key: car
-  color: [0,255,0,150]
+  color: [0, 255, 0, 150]
   children:
     - name: Local Path
       type: Line
@@ -25,7 +24,25 @@
     - name: Control_Points
       type: Scatter
       key: ctrl_pts
-      color: [1,1,0,0.8]
+      color: [1, 1, 0, 0.8]
+
+- name: Random Car 1
+  type: Box
+  key: car1
+  color: [255, 255, 0, 150]
+  init: [30, 10, 0]
+
+- name: Random Car 2
+  type: Box
+  key: car2
+  color: [0, 0, 255, 150]
+  init: [60, -20, 0]
+
+- name: Random Car 3
+  type: Box
+  key: car3
+  color: [255, 0, 0, 150]
+  init: [100, 10, 0]
 
 - name: Global Path
   type: Line
@@ -38,7 +55,7 @@
   key: str_ang
   color: r
 
-- name: Lateral Pos. Error [m] 
+- name: Lateral Pos. Error [m]
   type: Signal
   key: ref1_err
   color: g

@@ -82,9 +82,11 @@ class Worker(QtCore.QRunnable):
 
         # Retrieve args/kwargs here; and fire processing using them
         try:
+            queue = Queue()
             if self.useMultiProcessing is False:
                 # Only use threading, without using multiprocessing.Process
-                result = self.fn(*self.args, **self.kwargs)
+                result = self.fn(*self.args, queue, self.sender, **self.kwargs)
+                # result = queue.get()
             else:
                 # Process using multiprocessing.Pool
                 # This interface is consistent with threading, but progress cannot be communicated.
@@ -96,7 +98,7 @@ class Worker(QtCore.QRunnable):
 
                 # The function input has 2 additional arguements (Queue and callback function).
                 # This interface is not straightforward and needs to be fixed later.
-                queue = Queue()
+                
                 p = Process(target=self.fn, args=[*self.args, queue, self.sender], kwargs=self.kwargs, daemon=True)
                 p.start()
 
@@ -125,6 +127,7 @@ class Worker(QtCore.QRunnable):
             self.signals.finished.emit()  # Done
 
 
+# Alternative implementation. Unfinished.
 # class SimpleThread(QtCore.QThread):
 #     finished = QtCore.pyqtSignal(object)
 

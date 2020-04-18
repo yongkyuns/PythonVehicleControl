@@ -41,6 +41,8 @@ class Box(gl.GLBoxItem):
         function updates the plot data. 
         '''
         if data is not None:
+            data = list(data) 
+            data += [0] * (6-len(data)) # pad any unused values with 0
             x,y,z,x_ang,y_ang,z_ang = data
         else:
             if x is None:
@@ -109,6 +111,16 @@ class Box(gl.GLBoxItem):
         
         glEnd()
 
+class Car(Box):
+    '''
+    Class to overwrite the appearnce of Box object to a car shape. 
+    Simple cosmetic addition. Not implemented yet.
+    '''
+    def __init__(self):
+        pass
+    def paint(self):
+        pass
+
 class Line(gl.GLLinePlotItem):
     '''
     Line is a child class of pyqtgraph.opengl.GLLinePlotItem. This class 
@@ -152,7 +164,7 @@ class Scatter(gl.GLScatterPlotItem):
     data              (numpy array) 3-by-n array of (x,y,z) coordinates for plot. 2-by-n also works (assume 2D)
     ================  ==================================================
     '''
-    def __init__(self, name, color=[1.0,1.0,0.0,0.5], size=13, data=np.array([0,0]), **kwargs):
+    def __init__(self, name, color=[1.0,1.0,0.0,0.5], size=3, data=np.array([0,0,0]), **kwargs):
         super().__init__(pos=data, color=color, size=size, **kwargs)
         self.name = name
         self._data = data
@@ -161,10 +173,9 @@ class Scatter(gl.GLScatterPlotItem):
         if data is not None:
             super().setData(pos=data,**kwargs)
         elif x is not None and y is not None:
-            if z is not None:
-                data = np.vstack([x,y,z]).transpose()
-            else:
-                data = np.vstack([x,y]).transpose()
+            if z is None:
+                z = [0] * len(x)
+            data = np.vstack([x,y,z]).transpose()
             self.setData(pos=data)
         else:
             super().setData(**kwargs)

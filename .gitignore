@@ -5,6 +5,7 @@
 scratch/
 temp.py
 *checkpoint*.pth
+mpc_acado/
 
 # Dev environment #
 ###################

@@ -342,6 +342,8 @@ class Vehicle:
         if isinstance(self.controller,MPC):
             state = np.array([0,self.states[LAT_VEL].item(),0,self.states[YAW_RATE].item()])
             str_ang = self.controller.control(yref,state)
+            # str_ang = self.controller.control_with_acado(yref,state)
+            
         elif isinstance(self.controller, PID) or isinstance(self.controller, DDPG):
             str_ang = self.controller.control(yref)
         else:
