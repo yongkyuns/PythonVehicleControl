@@ -35,11 +35,11 @@ class Simulator:
     ================  ==================================================
     '''
 
-    def __init__(self, dt=0.01, sim_time=1, verbose=False):
+    def __init__(self, dt=0.01, sim_time=1, verbose=False, controller='DDPG'):
         self.verbose = verbose
         self._dt = dt  # [sec]
         self.vehicle = vehicle.Vehicle(
-            get_time_func=self.get_time, sample_time=self.dt, controller='PID')
+            get_time_func=self.get_time, sample_time=self.dt, controller=controller)
         self.sim_time = sim_time
         self.init_param()
 

@@ -2,7 +2,7 @@
 Main function to execute software
 '''
 
-from vehicle_sim import app
+from pyvehsim import app
 import sys
 sys.path.append('.')
 app.main()

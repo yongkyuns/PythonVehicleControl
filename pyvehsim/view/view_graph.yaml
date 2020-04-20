@@ -26,24 +26,6 @@
       key: ctrl_pts
       color: [1, 1, 0, 0.8]
 
-- name: Random Car 1
-  type: Box
-  key: car1
-  color: [255, 255, 0, 150]
-  init: [30, 10, 0]
-
-- name: Random Car 2
-  type: Box
-  key: car2
-  color: [0, 0, 255, 150]
-  init: [60, -20, 0]
-
-- name: Random Car 3
-  type: Box
-  key: car3
-  color: [255, 0, 0, 150]
-  init: [100, 10, 0]
-
 - name: Global Path
   type: Line
   key: global_path

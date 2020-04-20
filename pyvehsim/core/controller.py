@@ -271,7 +271,7 @@ class MPC(PathController):
         self.update_values(init_state, y_desired)
         # self.prob.solve(solver=cp.OSQP, max_iter=100,
                 #    verbose=False, warm_start=True)
-        self.prob.solve()
+        self.prob.solve(cp.ECOS)
         return self.u[:, 0].value[0]
 
     def control_with_acado(self, y_desired, init_state):

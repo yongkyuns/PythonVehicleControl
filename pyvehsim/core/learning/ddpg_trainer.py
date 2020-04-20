@@ -4,7 +4,7 @@ import torch
 import matplotlib.pyplot as plt
 from .ddpg_agent import Agent
 from collections import deque
-from vehicle_sim.core.vehicle import Vehicle
+from pyvehsim.core.vehicle import Vehicle
 
 
 OBSERV_SPACE = 4

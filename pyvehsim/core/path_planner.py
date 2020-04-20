@@ -12,7 +12,7 @@ from PythonRobotics.PathPlanning.CubicSpline import cubic_spline_planner
 
 import math
 import numpy as np
-from vehicle_sim.helper.helper import pi_2_pi, rotate, points_from_vec, find_points_in_polygon
+from pyvehsim.helper.helper import pi_2_pi, rotate, points_from_vec, find_points_in_polygon
 
 SEARCH_RADIUS = 1000   # [m]. Search distance for finding closest path point in successive time step
 MIN_DETECTION_PTS = 10  # [no unit] Number of sample points to be detected by the camera for path detection

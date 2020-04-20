@@ -1,3 +1,3 @@
-from vehicle_sim.core.learning import ddpg_trainer
+from pyvehsim.core.learning import ddpg_trainer
 
 ddpg_trainer.train()

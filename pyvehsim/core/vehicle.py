@@ -43,12 +43,12 @@ import numpy as np
 import math
 
 import sys
-from vehicle_sim.helper.helper import pi_2_pi
+from pyvehsim.helper.helper import pi_2_pi
 
-from vehicle_sim.helper.logger import Logger
-from vehicle_sim.core.controller import MPC, PID, DDPG
-from vehicle_sim.core import path_planner
-from vehicle_sim.core import car_params as cp
+from pyvehsim.helper.logger import Logger
+from pyvehsim.core.controller import MPC, PID, DDPG
+from pyvehsim.core import path_planner
+from pyvehsim.core import car_params as cp
 
 #states
 LAT_POS  = 0
